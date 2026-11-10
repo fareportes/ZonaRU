@@ -1,0 +1,3506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carga Masiva Proximos a V - Sistema de Gestión</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #28a745;
+            --dark-color: #333;
+            --light-color: #f8f9fa;
+            --border-color: #dee2e6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef2f7;
+            margin: 0;
+            padding: 0;
+            color: var(--dark-color);
+        }
+
+        #login-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 100px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        #dashboard {
+            display: none;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1750px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2.5fr;
+            gap: 20px;
+        }
+
+        .tabs-nav {
+            display: flex;
+            gap: 6px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            width: auto;
+            background: none;
+            color: #555;
+            border: none;
+            border-bottom: 3px solid transparent;
+            border-radius: 6px 6px 0 0;
+            padding: 12px 18px;
+            font-weight: 600;
+            font-size: 0.95em;
+            cursor: pointer;
+        }
+
+        .tab-btn:hover {
+            background-color: #eef2f7;
+            opacity: 1;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            background-color: #eef2f7;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .form-grid-responsive {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0 20px;
+        }
+
+        .pleca-toggle {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            background-color: #eafbf0;
+            color: #1b5e20;
+            font-weight: bold;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: background-color 0.15s, color 0.15s;
+        }
+
+        .pleca-toggle:hover {
+            background-color: #d7f5e0;
+        }
+
+        .pleca-toggle.activo {
+            background-color: #28a745;
+            color: #fff;
+            border-color: #1e7e34;
+        }
+
+        @media (max-width: 992px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        select:disabled {
+            background-color: #eef2f7;
+            color: #555;
+            cursor: not-allowed;
+            font-weight: 600;
+        }
+
+        .select-interactivo {
+            padding: 6px;
+            font-size: 0.9em;
+            font-weight: bold;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            width: auto;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        button:hover { opacity: 0.9; }
+        .btn-secondary { background-color: #6c757d; width: auto; }
+        .btn-success { background-color: var(--secondary-color); }
+        .btn-excel { background-color: #107c41; color: white; margin-bottom: 15px; width: 100%; font-size: 1.05em; padding: 12px; }
+        .btn-download-masivo { background-color: #2e7d32; color: white; margin-bottom: 10px; width: 100%; font-size: 0.95em; padding: 10px; }
+        .btn-backup { background-color: #7030a0; color: white; margin-bottom: 10px; }
+        
+        .btn-action { padding: 5px 10px; font-size: 0.85em; width: auto; font-weight: bold; margin-right: 4px; border-radius: 4px; }
+        
+        .btn-role-toggle { border: 1px solid transparent; cursor: pointer; display: inline-block; padding: 5px 12px; font-size: 0.85em; font-weight: bold; border-radius: 4px; text-align: center; width: 120px; }
+        .btn-role-admin { background-color: #e3f2fd; color: #0d47a1; border-color: #bbdefb; }
+        .btn-role-admin:hover { background-color: #d0e8fd; }
+        .btn-role-user { background-color: #e8f5e9; color: #1b5e20; border-color: #c8e6c9; }
+        .btn-role-user:hover { background-color: #dcedd5; }
+        .btn-role-super { background-color: #fdecea; color: #7d1a13; border-color: #f5c6c0; }
+        .btn-role-super:hover { background-color: #fbdcd8; }
+        .btn-role-lead { background-color: #ede7f6; color: #4527a0; border-color: #d1c4e9; }
+        .btn-role-lead:hover { background-color: #e1d7f3; }
+
+        .btn-password { background-color: #ffc107; color: #212529; }
+        .btn-password:hover { background-color: #e0a800; }
+        .btn-delete-item { background-color: #dc3545; color: white; padding: 4px 8px; font-size: 0.85em; width: auto; font-weight: bold; border-radius: 4px; border: none; }
+        .btn-delete-item:hover { background-color: #c82333; }
+
+        .filter-box {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .filter-box { grid-template-columns: 1fr; }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+            font-size: 0.92em;
+        }
+
+        th {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .badge-date { background-color: #fff3cd; color: #856404; font-size: 1em; padding: 8px 12px; border: 1px solid #ffeeba; }
+        .badge-sucursal { background-color: #e2f0d9; color: #385723; }
+        .badge-venta { background-color: #e1f5fe; color: #0288d1; border: 1px solid #b3e5fc; }
+        
+        .badge-recuperable { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .badge-irrecuperable { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .badge-prioridad-alta { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .badge-prioridad-media { background-color: #fff3cd; color: #856404; border: 1px solid #ffe69c; }
+        .badge-prioridad-baja { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .badge-prioridad-na { background-color: #f1f3f5; color: #adb5bd; border: 1px solid #dee2e6; }
+
+        /* ---- Botones de filtro por Prioridad de Irrecuperables a trabajar ---- */
+        .prioridad-filtros { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .btn-prioridad { flex: 1; min-width: 100px; margin-bottom: 0; }
+        .btn-prioridad.alta { border-color: #dc3545; background-color: #fdecea; color: #721c24; }
+        .btn-prioridad.alta:hover { background-color: #f8d7da; }
+        .btn-prioridad.alta.activo { background-color: #dc3545; color: #fff; border-color: #b02a37; }
+        .btn-prioridad.media { border-color: #ffc107; background-color: #fff8e1; color: #856404; }
+        .btn-prioridad.media:hover { background-color: #ffecb3; }
+        .btn-prioridad.media.activo { background-color: #ffc107; color: #3f2f00; border-color: #d39e00; }
+        .btn-prioridad.baja { border-color: #28a745; background-color: #eafbf0; color: #1b5e20; }
+        .btn-prioridad.baja:hover { background-color: #d7f5e0; }
+        .btn-prioridad.baja.activo { background-color: #28a745; color: #fff; border-color: #1e7e34; }
+        #prioridad-conteo { font-size: 0.85em; color: #555; margin: -8px 0 15px 0; }
+
+        .clickable-product {
+            color: #0056b3;
+            cursor: pointer;
+            text-decoration: underline dashed 1px;
+        }
+        .clickable-product:hover {
+            color: #003d82;
+            background-color: #f0f4f8;
+        }
+
+        /* ---- Dashboard: Riesgo de Vencimiento con Venta en Otras FA ---- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        @media (max-width: 700px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+        .stat-box {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .stat-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        .stat-box.active {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0,86,179,0.25);
+        }
+        .stat-num {
+            display: block;
+            font-size: 1.9em;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+        .stat-label {
+            font-size: 0.85em;
+            color: #666;
+        }
+        .stat-total .stat-num { color: var(--primary-color); }
+        .stat-pendiente .stat-num { color: #e65100; }
+        .stat-trabajado .stat-num { color: var(--secondary-color); }
+
+        .dash-progreso-track {
+            background-color: #eef2f7;
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .dash-progreso-fill {
+            background-color: var(--secondary-color);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+
+        /* ---- Reporte: ajustar todas las columnas a la pantalla ---- */
+        #reporte-table { table-layout: auto; width: 100%; margin-top: 10px; }
+        #reporte-table th, #reporte-table td { padding: 6px 5px; font-size: 0.8em; line-height: 1.25; word-break: break-word; }
+        #reporte-table th { position: sticky; top: 0; z-index: 2; white-space: normal; }
+        #reporte-table .badge { padding: 2px 6px; font-size: 0.85em; white-space: normal; text-align: center; }
+        #reporte-table .select-interactivo { font-size: 0.85em; padding: 4px; max-width: 150px; }
+        #reporte-table td:nth-child(2) { min-width: 140px; }
+        .btn-revertir-pendiente { width: auto; display: inline-block; margin: 4px 0 0 0; padding: 3px 8px; font-size: 0.8em; font-weight: bold; border: 1px solid #f0c36d; background: #fff3cd; color: #8a5a00; border-radius: 4px; cursor: pointer; }
+        .btn-revertir-pendiente:hover { background: #ffe69c; opacity: 1; }
+        @media (min-width: 1100px) { .container { max-width: 98%; padding: 0 12px; } }
+        @media (max-width: 900px) { #reporte-table { min-width: 900px; } }
+
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.5); 
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto; 
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .modal-content h2 { margin-bottom: 15px; }
+
+        .close-modal {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-modal:hover { color: #333; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* =====================================================================
+           VISTA MEJORADA — solo estilos; la lógica del sistema no se modifica
+           ===================================================================== */
+        :root {
+            --primary-color: #3b4cca;
+            --primary-dark: #2a37a0;
+            --primary-soft: #eceefc;
+            --secondary-color: #16a34a;
+            --accent: #0ea5e9;
+            --warn: #f59e0b;
+            --danger: #dc2626;
+            --dark-color: #1f2937;
+            --muted: #6b7280;
+            --light-color: #f5f7fb;
+            --border-color: #e3e7ef;
+            --radius: 12px;
+            --shadow-sm: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+            --shadow-md: 0 4px 14px rgba(16,24,40,.08);
+        }
+        * { -webkit-font-smoothing: antialiased; }
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
+            background: linear-gradient(180deg, #eef1fb 0%, #f6f8fc 260px, #f6f8fc 100%) fixed;
+            color: var(--dark-color);
+            line-height: 1.45;
+        }
+
+        /* ---- Login ---- */
+        #login-container {
+            margin: 9vh auto;
+            padding: 36px 32px 30px;
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            border-top: 5px solid var(--primary-color);
+            box-shadow: 0 20px 45px rgba(42,55,160,.15);
+        }
+        #login-container h2 { border: none; text-align: center; font-size: 1.6em; letter-spacing: -.3px; padding-bottom: 4px; }
+
+        /* ---- Encabezado ---- */
+        header {
+            background: linear-gradient(120deg, #2a37a0 0%, #3b4cca 55%, #4f7bf0 100%);
+            padding: 16px 32px;
+            gap: 16px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 18px rgba(42,55,160,.35);
+            position: sticky; top: 0; z-index: 50;
+        }
+        header h1 { font-size: 1.35em !important; font-weight: 700; letter-spacing: -.3px; }
+        header small { opacity: .9; }
+        header small #current-role-display {
+            background: rgba(255,255,255,.2); padding: 1px 9px; border-radius: 20px; font-weight: 600; font-size: .95em;
+        }
+        header > div:last-child { display: flex; gap: 8px; flex-wrap: wrap; }
+        header .btn-secondary {
+            background: rgba(255,255,255,.14);
+            border: 1px solid rgba(255,255,255,.3);
+            color: #fff; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: .88em;
+            transition: background .15s, transform .1s;
+        }
+        header .btn-secondary:hover { background: rgba(255,255,255,.28); opacity: 1; transform: translateY(-1px); }
+
+        .container { margin: 22px auto; }
+
+        /* ---- Tarjetas ---- */
+        .card {
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            padding: 22px 24px;
+            margin-bottom: 22px;
+        }
+        h2 {
+            font-size: 1.15em; font-weight: 700; color: var(--dark-color);
+            border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;
+            letter-spacing: -.2px;
+        }
+        .card > h2::before {
+            content: ""; display: inline-block; width: 4px; height: 1em; background: var(--primary-color);
+            border-radius: 3px; margin-right: 10px; vertical-align: -2px;
+        }
+        #dashboard-riesgo-card h2::before { display: none; }
+        #dashboard-riesgo-card { border-left: 5px solid var(--primary-color); }
+
+        /* ---- Formularios ---- */
+        label { font-size: .86em; color: #374151; margin-bottom: 6px; }
+        input, select {
+            border: 1px solid #d5dbe7; border-radius: 9px; padding: 10px 12px; background: #fff;
+            font-family: inherit; font-size: .95em; transition: border-color .15s, box-shadow .15s;
+        }
+        input:hover, select:hover { border-color: #b7c0d4; }
+        input:focus, select:focus {
+            outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(59,76,202,.18);
+        }
+        input[type="checkbox"] { accent-color: var(--primary-color); width: auto; }
+        input[readonly] { background: #f3f5fa !important; color: #4b5563; }
+
+        /* ---- Botones ---- */
+        button {
+            border-radius: 9px; font-family: inherit; letter-spacing: .1px;
+            background: var(--primary-color);
+            box-shadow: 0 1px 2px rgba(16,24,40,.12);
+            transition: background .15s, transform .1s, box-shadow .15s;
+        }
+        button:hover { background: var(--primary-dark); opacity: 1; box-shadow: 0 4px 10px rgba(42,55,160,.25); }
+        button:active { transform: translateY(1px); }
+        .btn-success { background: var(--secondary-color); padding: 12px; }
+        .btn-success:hover { background: #12873d; box-shadow: 0 4px 10px rgba(22,163,74,.3); }
+        .btn-secondary { background: #6b7280; }
+        .btn-excel { background: linear-gradient(120deg,#0f7a3e,#16a34a); border-radius: 10px; }
+        .btn-excel:hover { background: linear-gradient(120deg,#0c6633,#12873d); }
+        .btn-download-masivo { background: #0f7a3e; }
+        .btn-backup { background: #6d3fc0; }
+        .btn-password { background: #fbbf24 !important; color: #3b2a00 !important; }
+        .btn-delete-item { background: var(--danger); }
+
+        /* ---- Pestañas tipo píldora ---- */
+        .tabs-nav { border-bottom: none; gap: 8px; margin-bottom: 18px; background: #fff; padding: 6px; border-radius: 14px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+        .tab-btn {
+            border: none !important; border-radius: 10px; padding: 10px 18px; color: var(--muted);
+            background: transparent; box-shadow: none; font-size: .92em;
+        }
+        .tab-btn:hover { background: var(--primary-soft); color: var(--primary-color); box-shadow: none; }
+        .tab-btn.active { background: var(--primary-color); color: #fff; box-shadow: 0 3px 10px rgba(59,76,202,.35); }
+
+        /* ---- Panel de filtros ---- */
+        .filter-box {
+            background: var(--light-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;
+            /* Filtros en horizontal: tantas columnas como quepan; si no caben, bajan a la siguiente fila */
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            align-items: end;
+            gap: 12px 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .filter-box .form-group label { white-space: nowrap; }
+        @media (max-width: 768px) {
+            .filter-box { grid-template-columns: repeat(2, 1fr); }
+        }
+        .pleca-toggle {
+            border-radius: 10px; border-width: 1.5px; font-size: .92em; padding: 11px; box-shadow: none;
+        }
+        .pleca-toggle.activo { box-shadow: 0 3px 10px rgba(22,163,74,.35); }
+        .prioridad-filtros .btn-prioridad { margin-bottom: 0; }
+
+        /* ---- Indicadores (KPIs) ---- */
+        .stats-grid { gap: 16px; }
+        .stat-box {
+            background: #fff; border: 1px solid var(--border-color); border-radius: 14px;
+            padding: 18px 16px; position: relative; overflow: hidden; box-shadow: var(--shadow-sm);
+        }
+        .stat-box::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--primary-color); }
+        .stat-pendiente::before { background: var(--warn); }
+        .stat-trabajado::before { background: var(--secondary-color); }
+        .stat-box:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .stat-box.active { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(59,76,202,.2), var(--shadow-md); background: var(--primary-soft); }
+        .stat-num { font-size: 2.2em; font-weight: 800; letter-spacing: -1px; }
+        .stat-label { font-size: .82em; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+        .stat-pendiente .stat-num { color: #d97706; }
+        .dash-progreso-track { height: 12px; border-radius: 12px; background: #e6eaf4; }
+        .dash-progreso-fill { background: linear-gradient(90deg, #16a34a, #4ade80); border-radius: 12px; }
+
+        /* ---- Tabla del reporte ---- */
+        .tabla-scroll {
+            overflow: auto; max-height: 72vh; border: 1px solid var(--border-color);
+            border-radius: 12px; background: #fff; box-shadow: var(--shadow-sm);
+        }
+        .tabla-scroll table { margin-top: 0 !important; }
+        table { border-collapse: separate; border-spacing: 0; }
+        th {
+            background: #f1f4fb; color: #475569; font-size: .72em !important; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .5px; border-bottom: 2px solid #dbe2f0;
+        }
+        #reporte-table th { top: 0; box-shadow: 0 1px 0 #dbe2f0; }
+        td { border-bottom: 1px solid #eef1f7; }
+        tbody tr { transition: background .12s; }
+        tbody tr:nth-child(even) { background: #fafbfe; }
+        tbody tr:hover { background: var(--primary-soft); }
+
+        /* ---- Badges más suaves ---- */
+        .badge { border-radius: 20px; font-weight: 600; }
+        .badge-sucursal { background: #dcfce7; color: #166534; }
+        .badge-venta { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+        .badge-recuperable { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .badge-irrecuperable { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .badge-prioridad-alta { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .badge-prioridad-media { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+        .badge-prioridad-baja { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .clickable-product { color: var(--primary-color); font-weight: 600; text-decoration-color: rgba(59,76,202,.5); }
+        .clickable-product:hover { background: var(--primary-soft); border-radius: 4px; color: var(--primary-dark); }
+        .select-interactivo { border-radius: 8px; border: 1px solid #cbd3e3; }
+        .btn-revertir-pendiente { border-radius: 20px; }
+        .badge-fecha-venc { background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; white-space: nowrap !important; font-variant-numeric: tabular-nums; }
+
+        /* ---- Modal ---- */
+        .modal { background: rgba(17,24,39,.55); backdrop-filter: blur(3px); }
+        .modal-content { border-radius: 16px; margin: 7vh auto; box-shadow: 0 25px 60px rgba(0,0,0,.35); border-top: 5px solid var(--primary-color); }
+        .close-modal { transition: color .15s, transform .15s; }
+        .close-modal:hover { transform: rotate(90deg); color: var(--danger); }
+
+        /* ---- Detalles ---- */
+        ::selection { background: rgba(59,76,202,.25); }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-thumb { background: #c5cce0; border-radius: 10px; border: 2px solid #f1f4fb; }
+        ::-webkit-scrollbar-thumb:hover { background: #a3aecb; }
+        small { color: var(--muted); }
+
+        @media (max-width: 768px) {
+            header { padding: 12px 16px; }
+            .card { padding: 16px; }
+            .tabs-nav { overflow-x: auto; flex-wrap: nowrap; }
+            .tab-btn { white-space: nowrap; }
+        }
+        @media print { header, .tabs-nav, button { display: none !important; } body { background: #fff; } }
+    </style>
+</head>
+<body>
+
+    <div id="top10-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="cerrarModal()">&times;</span>
+            <h2 id="modal-producto-titulo" style="color: #0056b3; font-size: 1.4em; border-bottom: 2px solid #eef2f7; margin-bottom: 15px; padding-bottom: 5px;">Top 10 Farmacias con Mayor Venta</h2>
+            <p id="modal-producto-sub" style="font-style: italic; color: #555; font-size: 0.95em;"></p>
+            <div style="max-height: 350px; overflow-y: auto;">
+                <table id="modal-top10-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%; text-align: center;">Puesto</th>
+                            <th>Sucursal</th>
+                            <th style="text-align: right;">Cantidad Vendida</th>
+                            <th style="text-align: right;">Prom. Venta (3 meses)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <button onclick="cerrarModal()" style="margin-top: 15px; background-color: #6c757d;">Cerrar Ventana</button>
+        </div>
+    </div>
+
+    <div id="login-container">
+        <h2 style="text-align: center;">Control de Vencidos</h2>
+        <div class="form-group">
+            <label for="login-user">Usuario:</label>
+            <input type="text" id="login-user" placeholder="Ingrese usuario">
+        </div>
+        <div class="form-group">
+            <label for="login-pass">Contraseña:</label>
+            <input type="password" id="login-pass" placeholder="Ingrese contraseña">
+        </div>
+        <button onclick="login()">Iniciar Sesión</button>
+        <p id="login-error" style="color: red; text-align: center; margin-top: 10px; font-size: 0.9em;"></p>
+    </div>
+
+    <div id="dashboard">
+        <header>
+            <div>
+                <h1 style="margin: 0; font-size: 24px;">Sistema de Control de Vencidos</h1>
+                <small>Usuario actual: <span id="current-user-display" style="font-weight: bold;"></span> (<span id="current-role-display"></span>)</small>
+            </div>
+            <div>
+                <button class="btn-secondary" onclick="sincronizarManual()" title="Reemplaza la vista actual con lo que hay guardado en Google Sheets">🔄 Sincronizar</button>
+                <button class="btn-secondary" onclick="cambiarMiContrasena()" title="Cambiar la contraseña de tu propia cuenta">🔑 Cambiar mi Contraseña</button>
+                <button class="btn-secondary" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <div class="container">
+
+            <div class="card" id="dashboard-riesgo-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 5px;">
+                    <h2 style="margin:0; border:none; padding:0;">📊 Riesgo de Vencimiento con Venta en Otras FA <span id="dash-fa-activa-badge" style="display:none; font-size:0.6em; background-color:#eef2f7; color:var(--primary-color); padding:3px 8px; border-radius:10px; vertical-align:middle;"></span></h2>
+                    <label style="font-size:0.85em; display:flex; align-items:center; gap:6px; cursor:pointer; font-weight: normal;">
+                        <input type="checkbox" id="dash-toggle-filtro" onchange="toggleFiltroRiesgoOtraFA()">
+                        Mostrar solo estos en la tabla
+                    </label>
+                </div>
+                <p style="color:#666; font-size:0.85em; margin: 0 0 15px 0;">
+                    Productos próximos a vencer que <strong>no tienen venta en su propia FA</strong> pero <strong>sí se venden en otras farmacias</strong>: son candidatos a traslado/redistribución antes de perderse.
+                </p>
+                <div class="stats-grid">
+                    <div class="stat-box stat-total" onclick="filtrarDashboardRiesgo('total')" title="Ver todos los que están en riesgo con venta en otra FA">
+                        <span class="stat-num" id="dash-total-riesgo">0</span>
+                        <span class="stat-label">Total en Riesgo</span>
+                    </div>
+                    <div class="stat-box stat-pendiente" onclick="filtrarDashboardRiesgo('pendiente')" title="Ver solo los pendientes de gestionar">
+                        <span class="stat-num" id="dash-pendientes">0</span>
+                        <span class="stat-label">⏳ Pendientes</span>
+                    </div>
+                    <div class="stat-box stat-trabajado" onclick="filtrarDashboardRiesgo('trabajado')" title="Ver los que ya fueron trabajados, enviados o impulsados">
+                        <span class="stat-num" id="dash-trabajados">0</span>
+                        <span class="stat-label">✅ Trabajados</span>
+                    </div>
+                </div>
+                <div style="margin-top:15px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#666; margin-bottom:4px;">
+                        <span>Avance de gestión</span>
+                        <span id="dash-progreso-pct">0%</span>
+                    </div>
+                    <div class="dash-progreso-track">
+                        <div id="dash-progreso-bar" class="dash-progreso-fill"></div>
+                    </div>
+                    <small id="dash-breakdown" style="color:#666; display:block; margin-top:6px;"></small>
+                </div>
+            </div>
+
+            <div class="tabs-nav" id="tabs-nav">
+                <button type="button" class="tab-btn active" id="tab-btn-registro" onclick="cambiarTab('tab-registro')">📋 Registro y Listado de Productos</button>
+                <button type="button" class="tab-btn" id="tab-btn-carga" onclick="cambiarTab('tab-carga')" style="display:none;">📁 Carga de Archivos</button>
+                <button type="button" class="tab-btn" id="tab-btn-resumen" onclick="cambiarTab('tab-resumen')" style="display:none;">🏢 Resumen por FA</button>
+                <button type="button" class="tab-btn" id="tab-btn-resumen-usuario" onclick="cambiarTab('tab-resumen-usuario')" style="display:none;">👥 Resumen por Usuario</button>
+            </div>
+
+            <div id="tab-registro" class="tab-content active">
+
+                <div class="card">
+                    <h2>Registrar Producto</h2>
+                    <form id="vencidos-form" onsubmit="guardarProducto(event)">
+                        <div class="form-grid-responsive">
+                            <div class="form-group">
+                                <label for="prod-sucursal">Sucursal:</label>
+                                <input type="text" id="prod-sucursal" list="sucursales-list" required placeholder="Escriba para buscar sucursal (FA01 - FA118)...">
+                                <datalist id="sucursales-list"></datalist>
+                            </div>
+                            <div class="form-group">
+                                <label for="prod-name">Producto:</label>
+                                <div style="position:relative;" id="autocomplete-wrapper">
+                                    <input type="text" id="prod-name" required autocomplete="off"
+                                        placeholder="Escriba para buscar producto..."
+                                        oninput="acFiltrar()"
+                                        onkeydown="acNavegar(event)"
+                                        onfocus="acFiltrar()"
+                                        style="width:100%; box-sizing:border-box;">
+                                    <div id="ac-dropdown" style="
+                                        display:none; position:absolute; z-index:9999;
+                                        background:#fff; border:1px solid #b0c4de;
+                                        border-top:none; border-radius:0 0 6px 6px;
+                                        max-height:220px; overflow-y:auto;
+                                        width:100%; box-shadow:0 4px 12px rgba(0,0,0,0.12);
+                                        font-size:0.93em;">
+                                    </div>
+                                </div>
+                                <small id="total-products-msg" style="color: #666; font-style: italic; display:block; margin-top: 3px;"></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="prod-lab">Laboratorio (Automático):</label>
+                                <input type="text" id="prod-lab" readonly placeholder="Se asigna automáticamente al elegir el producto" style="background-color: #e9ecef; font-weight: bold;">
+                            </div>
+                            <div class="form-group">
+                                <label for="prod-prov">Proveedor (Viñeta):</label>
+                                <select id="prod-prov" onchange="calcularDiagnosticoEnFormulario()">
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="prod-qty">Cantidad Vencida / Próxima a Vencer:</label>
+                                <input type="number" id="prod-qty" min="1" required placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="prod-date">Fecha de Vencimiento:</label>
+                                <input type="date" id="prod-date" required>
+                            </div>
+                        </div>
+                        <div class="form-group" id="form-diagnostico-container" style="display: none; margin-top: 10px;">
+                            <label>Diagnóstico por Viñeta:</label>
+                            <div id="form-diagnostico-badge" style="padding: 10px; border-radius: 4px; font-weight: bold; text-align: center;"></div>
+                        </div>
+                        <button type="submit" class="btn-success">Agregar al Reporte</button>
+                    </form>
+                </div>
+
+                <div>
+                    <div id="admin-export-section" style="display: none;">
+                        <button onclick="exportarAReporteExcelAvanzado()" class="btn-excel">📊 Exportar Plan Comercial con Filas Agrupadas (.xls)</button>
+                    </div>
+
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--light-color); padding-bottom: 10px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h2 id="reporte-titulo" style="margin: 0; border: none; padding: 0;">Reporte de Vencidos</h2>
+                                <span id="dash-filtro-activo-badge" style="display:none; font-size:0.8em; color: var(--primary-color); cursor:pointer;" onclick="quitarFiltroDashboardRiesgo()">
+                                    🔎 Filtro de riesgo activo — <span style="text-decoration:underline;">quitar</span>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="badge badge-date">📅 Fecha de Hoy: <strong id="fecha-actual-header"></strong></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="chk-mostrar-meses-anteriores" onchange="toggleMostrarMesesAnteriores()" style="width: auto; margin: 0;">
+                            <label for="chk-mostrar-meses-anteriores" style="margin: 0; font-size: 0.9em; font-weight: 600; cursor: pointer;">
+                                🗓️ Mostrar registros de meses anteriores <span style="font-weight: normal; color: #6c757d;">(por defecto solo se ven el mes actual y el anterior; elegir un mes puntual en "Mes Venc." también lo muestra sin marcar esto)</span>
+                            </label>
+                        </div>
+
+                        <button type="button" id="btn-recuperables-salientes" class="pleca-toggle" onclick="toggleRecuperablesSalientes()" title="Muestra productos Recuperables que están en el mes límite para enviarse según su política (ej: política de 5 meses = se envían cuando faltan 5 meses para vencer). Los que ya tienen menos meses que el plazo ya no se pueden enviar y se excluyen."">
+                            🟢 Recuperables Salientes
+                        </button>
+                        <div id="aviso-recuperables-fuera-plazo" style="display:none; margin-top:8px; padding:8px 12px; background:#fff3cd; color:#856404; border:1px solid #ffe69c; border-radius:6px; font-size:0.88em;"></div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="font-size: 0.9em;">🎯 Prioridad de Irrecuperables a trabajar:</label>
+                            <div class="prioridad-filtros">
+                                <button type="button" id="btn-prioridad-alta" class="pleca-toggle btn-prioridad alta" onclick="toggleFiltroPrioridad('Alta')" title="La venta en su propia sucursal no llega al 400% de la cantidad que se vence (ej. vence 1 y vende 3 o menos): se pierde si no se actúa.">
+                                    🔴 Alta
+                                </button>
+                                <button type="button" id="btn-prioridad-baja" class="pleca-toggle btn-prioridad baja" onclick="toggleFiltroPrioridad('Baja')" title="La venta en su propia sucursal llega al 400% o más de la cantidad que se está venciendo (ej. vence 1 y vende 4).">
+                                    🟢 Baja
+                                </button>
+                            </div>
+                            <div id="prioridad-conteo"></div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label for="buscador-producto" style="font-size: 0.9em;">🔍 Buscar producto:</label>
+                            <input type="text" id="buscador-producto" oninput="actualizarTablaReporte()" placeholder="Escriba el nombre del producto para filtrar los registros..." style="width:100%; box-sizing:border-box;">
+                        </div>
+
+                        <div id="admin-filters-container" style="display: none; width: 100%;">
+                            <div class="filter-box">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="filter-sucursal" style="font-size: 0.9em;">Sucursal:</label>
+                                    <select id="filter-sucursal" onchange="actualizarTablaReporte()">
+                                        <option value="">-- Todas --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="filter-mes-venc" style="font-size: 0.9em;">Mes Venc.:</label>
+                                    <select id="filter-mes-venc" onchange="actualizarTablaReporte()">
+                                        <option value="">-- Todos --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="filter-anio-venc" style="font-size: 0.9em;">Año Venc.:</label>
+                                    <select id="filter-anio-venc" onchange="actualizarTablaReporte()">
+                                        <option value="">-- Todos --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="filter-mes-registro" style="font-size: 0.9em;">Mes Reg.:</label>
+                                    <select id="filter-mes-registro" onchange="actualizarTablaReporte()">
+                                        <option value="">-- Todos --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="filter-recuperacion" style="font-size: 0.9em;">Política:</label>
+                                    <select id="filter-recuperacion" onchange="actualizarTablaReporte()">
+                                        <option value="">-- Todos --</option>
+                                        <option value="Recuperable">Recuperable</option>
+                                        <option value="Irrecuperable">Irrecuperable</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="filter-estado-gestion" style="font-size: 0.9em;">Estado Gestión:</label>
+                                    <select id="filter-estado-gestion" onchange="actualizarTablaReporte()">
+                                        <option value="">-- Todos --</option>
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="Traslado a otra FA">Traslado a otra FA</option>
+                                        <option value="Enviado a FA Bodega">Enviado a FA Bodega</option>
+                                        <option value="Venta en sucursal">Venta en sucursal</option>
+                                        <option value="Salida irrecuperable">Salida irrecuperable</option>
+                                        <option value="Impulsado">Impulsado</option>
+                                        <option value="Cobrado a empleado">Cobrado a empleado</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p id="tip-modal-msg" style="color:#555; font-size:0.88em; margin-bottom:10px;"><strong style="color:var(--primary-color);">💡 Tip:</strong> Toca el nombre de cualquier producto para ver qué farmacias lo venden más.</p>
+
+                        <div class="tabla-scroll">
+                            <table id="reporte-table">
+                                <thead>
+                                    <tr>
+                                        <th>Sucursal</th>
+                                        <th>Producto</th>
+                                        <th>Laboratorio</th>
+                                        <th>Viñeta</th>
+                                        <th>Cant. Vencida</th>
+                                        <th>Estado Política</th>
+                                        <th>Venta Sucursal</th>
+                                        <th>Prioridad</th>
+                                        <th>Estado Gestión (Interactiva)</th>
+                                        <th>Fecha Venc.</th>
+                                        <th>Mes Registro</th>
+                                        <th>Registrado Por</th>
+                                        <th>Registrado El</th>
+                                        <th id="th-acciones-reporte" style="display: none;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="tab-carga" class="tab-content">
+                    <div id="admin-panel" class="card">
+                        <h2>Cargar Políticas de Vencidos (.xlsx)</h2>
+                        <div style="background-color: #fff8e1; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px dashed #ffb300;">
+                            <label style="font-size:0.85em; font-weight: bold; color:#b78103;">Subir archivo con columnas: <strong>Proveedor</strong>, <strong>Laboratorio</strong> y Observaciones</label>
+                            <input type="file" id="politicas-file-input" accept=".xlsx, .xls" style="padding:5px; font-size:0.9em; background: white; border: 1px solid #bdc3c7; width:100%; border-radius:4px; margin-top:5px;">
+                            <small id="politicas-status-msg" style="color: #e65100; font-weight: bold; display:block; margin-top: 5px;"></small>
+                        </div>
+
+                        <div id="carga-masiva-productos-container">
+                            <h2>Carga Masiva Proximos a V (.xlsx)</h2>
+                            <div style="background-color: #f0f9eb; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px dashed #67c23a;">
+                                <button type="button" class="btn-download-masivo" onclick="exportarFormatoCargaMasiva()">📥 Descargar Plantilla / Datos (.xlsx)</button>
+                                <input type="file" id="productos-masivo-file-input" accept=".xlsx, .xls" style="padding:5px; font-size:0.9em; background: white; border: 1px solid #bdc3c7; width:100%; border-radius:4px; margin-top:5px;">
+                                <small id="productos-masivo-status" style="color: #67c23a; font-weight: bold; display:block; margin-top: 5px;"></small>
+                                <small id="carga-masiva-aviso-admin" style="display:none; color:#b78103; font-weight:bold; margin-top:5px;">
+                                    ⚠️ Como Admin, solo puede cargar registros del mes actual. Los registros de meses anteriores requieren permiso de Super Usuario.
+                                </small>
+                            </div>
+                        </div>
+
+                        <h2>Carga Masiva de Reporte Ventas (.xlsx)</h2>
+                        <div style="background-color: #eaf2f8; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px dashed #2980b9;">
+                            <input type="file" id="ventas-file-input" accept=".xlsx, .xls" style="padding:5px; font-size:0.9em; background: white; border: 1px solid #bdc3c7; width:100%; border-radius:4px;">
+                            <small id="ventas-status-msg" style="color: #27ae60; font-weight: bold; display:block; margin-top: 5px;"></small>
+                        </div>
+
+                        <h2>Copia de Seguridad (Backup)</h2>
+                        <div style="background-color: #f8f0fc; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px dashed #b8860b;">
+                            <button onclick="generarBackupSistema()" class="btn-backup">🔒 Generar Backup del Sistema (.json)</button>
+                            <hr style="border: 0; border-top: 1px solid #dee2e6; margin: 10px 0;">
+                            <label for="backup-file-input" style="font-size:0.85em; font-weight: bold; color: #7030a0;">Restaurar desde un Backup (.json):</label>
+                            <input type="file" id="backup-file-input" accept=".json" style="padding:5px; font-size:0.9em; background: white;">
+                        </div>
+
+                        <h2>Cargar Catálogo Oficial (.xlsx)</h2>
+                        <div style="background-color: #f1f3f5; padding: 12px; border-radius: 6px; margin-bottom: 20px; border: 1px dashed #ced4da;">
+                            <label style="font-size:0.85em; font-weight: bold; color:#555;">Subir Productos FA.xlsx con columnas Nombre y Laboratorio:</label>
+                            <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="padding:5px; font-size:0.9em; margin-top:5px;">
+                        </div>
+
+                        <h2>Gestión de Usuarios</h2>
+                        <form id="user-form" onsubmit="crearUsuario(event)">
+                            <div class="form-group">
+                                <label for="new-username">Nuevo Usuario:</label>
+                                <input type="text" id="new-username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-password">Contraseña:</label>
+                                <input type="password" id="new-password" required placeholder="Asigne una contraseña">
+                            </div>
+                            <div class="form-group">
+                                <label for="new-role">Rol Inicial:</label>
+                                <select id="new-role" required onchange="actualizarVisibilidadFANuevoUsuario()">
+                                    <option value="User">Usuario Normal</option>
+                                    <option value="Admin">Administrador</option>
+                                    <option value="SuperAdmin" id="opt-superadmin">Super Usuario</option>
+                                    <option value="LeadDeveloper" id="opt-leaddeveloper">Lead Developer</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="new-fa-group">
+                                <label for="new-fa">FA Asignada:</label>
+                                <input type="text" id="new-fa" list="sucursales-list" placeholder="Ej: FA01">
+                                <small id="new-fa-hint" style="color:#6c757d;">El usuario solo podrá ver y registrar en esta FA.</small>
+                            </div>
+                            <button type="submit">Crear Usuario</button>
+                        </form>
+
+                        <div id="lista-usuarios-container" style="display:none;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 25px;">
+                                <h3 style="font-size: 1.1em; margin: 0;">Usuarios Registrados y Permisos</h3>
+                                <button type="button" class="btn-secondary" id="btn-toggle-usuarios" style="width:auto; padding:6px 12px; font-size:0.85em;" onclick="toggleTablaUsuarios()">👁️ Mostrar Usuarios</button>
+                            </div>
+                            <div id="users-table-wrapper" style="overflow-x: auto; display:none;">
+                                <table id="users-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Usuario</th>
+                                            <th style="text-align: center; width: 110px;">Permisos</th>
+                                            <th style="text-align: center; width: 90px;">FA</th>
+                                            <th style="text-align: right;">Acciones de Cuenta</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <p id="lista-usuarios-restringido-msg" style="display:none; color:#6c757d; font-size:0.85em; font-style:italic; margin-top:25px;">
+                            🔒 Solo un Super Usuario puede ver el listado de usuarios registrados.
+                        </p>
+                    </div>
+            </div>
+
+            <div id="tab-resumen" class="tab-content">
+                <div class="card" id="dashboard-resumen-fa-card">
+                    <h2 style="margin:0 0 5px 0;">🏢 Resumen por FA (todas las sucursales)</h2>
+                    <p style="color:#666; font-size:0.85em; margin: 0 0 15px 0;">
+                        Desglose de productos en riesgo con venta en otras FA, por sucursal de origen, con detalle de cuántas gestiones se han realizado y de qué tipo. Respeta los filtros de Mes Venc., Mes Reg., Política y Estado Gestión (no el de Sucursal, para poder comparar todas). Clic en una fila para filtrar esa FA en el reporte.
+                    </p>
+                    <div style="overflow-x:auto;">
+                        <table id="tabla-resumen-fa" style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border-color); text-align:left;">
+                                    <th style="padding:8px;">FA</th>
+                                    <th style="padding:8px; text-align:right;">Total en Riesgo</th>
+                                    <th style="padding:8px; text-align:right;">⏳ Pendientes</th>
+                                    <th style="padding:8px; text-align:right;">🔁 Traslado</th>
+                                    <th style="padding:8px; text-align:right;">📦 Env. Bodega</th>
+                                    <th style="padding:8px; text-align:right;">🛒 Venta Suc.</th>
+                                    <th style="padding:8px; text-align:right;">❌ Irrecuperable</th>
+                                    <th style="padding:8px; text-align:right;">🚀 Impulsado</th>
+                                    <th style="padding:8px; text-align:right;">💵 Cobrado Emp.</th>
+                                    <th style="padding:8px; text-align:right;">✅ Total Gestionado</th>
+                                    <th style="padding:8px;">Avance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-resumen-fa-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-resumen-usuario" class="tab-content">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+                        <div>
+                            <h2 style="margin:0 0 5px 0;">👥 Resumen por Usuario</h2>
+                            <p id="resumen-usuario-descripcion" style="color:#666; font-size:0.85em; margin:0;">
+                                Registros ingresados por cada usuario y cuánto de ello ya se gestionó.
+                            </p>
+                        </div>
+                        <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                            <div class="form-group" style="margin:0;">
+                                <label for="resumen-usuario-mes" style="font-size:0.85em;">Mes Reg.:</label>
+                                <select id="resumen-usuario-mes" onchange="actualizarResumenPorUsuario()">
+                                    <option value="">-- Todos --</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn-excel" style="width:auto; margin:0; padding:10px 16px; font-size:0.9em;" onclick="exportarResumenPorUsuario()">📥 Exportar a Excel</button>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table id="tabla-resumen-usuario" style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border-color); text-align:left;">
+                                    <th style="padding:8px;">Usuario</th>
+                                    <th style="padding:8px;">FA</th>
+                                    <th style="padding:8px; text-align:right;">Registros</th>
+                                    <th style="padding:8px; text-align:right;">Unidades</th>
+                                    <th style="padding:8px; text-align:right;">⏳ Pendientes</th>
+                                    <th style="padding:8px; text-align:right;">✅ Gestionados</th>
+                                    <th style="padding:8px;">Avance</th>
+                                    <th style="padding:8px;">Último registro</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-resumen-usuario-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // URL ACTUALIZADA
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzlkE9OxbgITQA9mSb8MYbtfp-bVIUlZLleEJ1mcS3vjkVTHHx3BKwrhNBnOoaAAHta/exec";
+
+        let listadoProductos = [];
+        let mapaProductosLaboratorios = {}; 
+        let mapaTop10Ventas = {}; 
+        let maestroPoliticas = {}; 
+        let usuarioActual = null;
+        let globalVencidos = [];
+
+        // Estado del filtro del Dashboard de Riesgo (venta en otras FA)
+        let filtroSoloRiesgoOtraFA = false;
+        let filtroGestionAgrupadoRiesgo = ''; // '' | 'pendiente' | 'trabajado'
+        let filtroRecuperablesSalientes = false; // true = solo Recuperables dentro de la ventana de meses de su política
+        let filtroPrioridadActivo = ''; // '' | 'Alta' | 'Baja'
+        let mostrarMesesAnteriores = false; // true = no ocultar registros de 2+ meses de vencimiento atrás
+
+        // ── PRIORIZACIÓN DE IRRECUPERABLES A TRABAJAR ──
+        // Solo hay dos niveles: Alta y Baja.
+        // Se compara la venta del producto en SU PROPIA sucursal (reporte de
+        // ventas, ~3 meses) contra la cantidad que se está venciendo:
+        //   Baja: la venta llega al 400% (4×) de la cantidad a vencer o más.
+        //   Alta: todo lo demás (incluye sin venta).
+        // Ej: vence 1 → vende 4 o más = Baja; vende 3 o menos = Alta.
+        //     vence 4 → vende 16 o más = Baja; vende 15 o menos = Alta.
+        // Factor 4 = 400%. Se puede ajustar aquí si cambia el criterio.
+        const PRIORIDAD_FACTOR_VENTA_VS_VENCIMIENTO = 4;
+
+        // ── MÓDULO DE INDEXEDDB PARA CACHÉ MASIVA DE VENTAS (+240k registros) ──
+        const DB_NAME = "ControlVencidosDB";
+        const STORE_NAME = "ventasCache";
+        const DB_VERSION = 1;
+
+        function abrirDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = function(event) {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        async function guardarEnCacheVentas(dataRegistros) {
+            const db = await abrirDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(STORE_NAME, "readwrite");
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.put(dataRegistros, "datosVentas");
+                request.onsuccess = () => resolve(true);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function obtenerDeCacheVentas() {
+            try {
+                const db = await abrirDB();
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, "readonly");
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.get("datosVentas");
+                    request.onsuccess = (e) => resolve(e.target.result || null);
+                    request.onerror = (e) => reject(e.target.error);
+                });
+            } catch (error) {
+                console.error("Error al leer IndexedDB:", error);
+                return null;
+            }
+        }
+        // ──────────────────────────────────────────────────────────────────────
+
+        function esAdminOSuperior(u) {
+            return !!(u && (u.rol === 'Admin' || u.rol === 'SuperAdmin' || u.rol === 'LeadDeveloper'));
+        }
+        // Lead Developer es el rol de mayor jerarquía: hereda TODOS los permisos
+        // del Super Usuario (por eso esSuperUsuario también lo incluye).
+        function esLeadDeveloper(u) {
+            return !!(u && u.rol === 'LeadDeveloper');
+        }
+        function esSuperUsuario(u) {
+            return !!(u && (u.rol === 'SuperAdmin' || u.rol === 'LeadDeveloper'));
+        }
+        function etiquetaDeRol(rol) {
+            if (rol === 'LeadDeveloper') return 'Lead Developer';
+            if (rol === 'SuperAdmin') return 'Super Usuario';
+            if (rol === 'Admin') return 'Admin';
+            return 'User';
+        }
+        // Roles sin FA obligatoria (ven todas las FA)
+        function rolSinFA(rol) {
+            return rol === 'SuperAdmin' || rol === 'LeadDeveloper';
+        }
+
+        // El campo FA es obligatorio para Admin y User (quedan atados a esa FA).
+        // Para Super Usuario es opcional, ya que puede ver y crear en todas.
+        function actualizarVisibilidadFANuevoUsuario() {
+            const rol = document.getElementById('new-role').value;
+            const inputFA = document.getElementById('new-fa');
+            if (rolSinFA(rol)) {
+                inputFA.required = false;
+                document.getElementById('new-fa-group').style.opacity = '0.6';
+            } else {
+                inputFA.required = true;
+                document.getElementById('new-fa-group').style.opacity = '1';
+            }
+
+            // Solo el Super Usuario puede crear usuarios en OTRA FA.
+            // Un Admin queda limitado a su propia FA: el campo se precarga y se bloquea.
+            const hint = document.getElementById('new-fa-hint');
+            const restringido = !!usuarioActual && !esSuperUsuario(usuarioActual);
+            if (restringido) {
+                inputFA.value = (usuarioActual.sucursal || '').toUpperCase();
+                inputFA.readOnly = true;
+                inputFA.style.backgroundColor = '#eef2f7';
+                inputFA.title = 'Solo un Super Usuario puede crear usuarios en otra FA.';
+                if (hint) hint.innerText = '🔒 Como Admin solo puedes crear usuarios en tu propia FA. Solo un Super Usuario puede crearlos en otra FA.';
+            } else {
+                inputFA.readOnly = false;
+                inputFA.style.backgroundColor = '';
+                inputFA.title = '';
+                if (hint) hint.innerText = 'El usuario solo podrá ver y registrar en esta FA.';
+            }
+        }
+
+        const listaVinetasFijas = [
+            "AldoUnion", "Andifar", "Calox", "Chalver", "Corfarma", "DINSULA",
+            "Dromeinter", "DrogFrancesa", "DrogGuardado", "DrogHasther", "DrogRejuwe", "DrogUniversal",
+            "Drorisa", "ECSA", "GRIDENKA", "Higeafarma", "Infarma",
+            "Inpomo", "Inv&ProdVarios", "Karnel", "Lagomac", "Lancasco", "LeClinique",
+            "Leterago", "Medilab", "Medwell", "Mefasa", "MSN",
+            "NutriTech", "Pharmaetica", "Pisa", "Proconsumo", "Proconsumo VE",
+            "Siman", "Siman viñeta (Rojo)", "Siman viñeta (Blanco, Naranja)", "Unipharm"
+        ];
+
+        // Viñetas que, sin importar la política Viñeta+Laboratorio cargada ni
+        // el laboratorio del producto, SIEMPRE se consideran Irrecuperables
+        // (no tienen ninguna ruta de recuperación posible).
+        const listaVinetasSiempreIrrecuperables = ["Siman viñeta (Rojo)"];
+
+        // Laboratorios que, aunque no tengan una viñeta propia en listaVinetasFijas,
+        // se manejan comercialmente bajo la viñeta "Leterago". Cuando el Laboratorio
+        // de un producto coincide con alguno de estos (sin distinguir mayúsculas),
+        // el Proveedor (Viñeta) se autocompleta como "Leterago".
+        const listaLaboratoriosLeterago = [
+            "Garden House Farmaceutico S.A", "Hidrisage", "Iclos Biotecnologia",
+            "Leches Victus", "Medihealth", "Megalabs", "Panalab", "Poen",
+            "Roemmers", "Rowe"
+        ];
+
+        // Dado un nombre de Laboratorio, determina la viñeta/proveedor que le
+        // corresponde automáticamente: si el propio laboratorio ya es una viñeta
+        // fija, se usa tal cual; si es uno de los laboratorios de Leterago, se
+        // asigna "Leterago"; si no hay coincidencia, devuelve null.
+        function resolverVinetaAutomatica(laboratorio) {
+            laboratorio = (laboratorio || "").toString().trim();
+            if (!laboratorio) return null;
+
+            const comoVinetaFija = listaVinetasFijas.find(v => v.toLowerCase() === laboratorio.toLowerCase());
+            if (comoVinetaFija) return comoVinetaFija;
+
+            const esLabLeterago = listaLaboratoriosLeterago.some(l => l.toLowerCase() === laboratorio.toLowerCase());
+            if (esLabLeterago) return "Leterago";
+
+            return null;
+        }
+
+        // Estados de gestión disponibles para un registro de vencido (además
+        // del estado inicial "Pendiente", que no forma parte de esta lista).
+        // Centralizados aquí para que el select interactivo, el filtro, los
+        // iconos, los colores y los dashboards de riesgo/resumen por FA usen
+        // siempre el mismo catálogo.
+        const ESTADOS_GESTION = [
+            { valor: "Traslado a otra FA", icono: "🔁", color: "#cfe2ff" },
+            { valor: "Enviado a FA Bodega", icono: "📦", color: "#cce5ff" },
+            { valor: "Venta en sucursal", icono: "🛒", color: "#d4edda" },
+            { valor: "Salida irrecuperable", icono: "❌", color: "#f8d7da" },
+            { valor: "Impulsado", icono: "🚀", color: "#e2d0f8" },
+            { valor: "Cobrado a empleado", icono: "💵", color: "#ffe5d0" }
+        ];
+
+        function infoEstadoGestion(estado) {
+            return ESTADOS_GESTION.find(e => e.valor === estado) || null;
+        }
+        function iconoEstadoGestion(estado) {
+            if (!estado || estado === 'Pendiente') return '⏳';
+            const info = infoEstadoGestion(estado);
+            return info ? info.icono : '📌';
+        }
+        function colorEstadoGestion(estado) {
+            if (!estado || estado === 'Pendiente') return '#fff3cd';
+            const info = infoEstadoGestion(estado);
+            return info ? info.color : '#f0f0f0';
+        }
+
+        function despliegueFechaActual() {
+            const hoy = new Date();
+            document.getElementById('fecha-actual-header').innerText = hoy.toLocaleDateString('es-HN', {
+                year: 'numeric', month: '2-digit', day: '2-digit'
+            });
+        }
+        despliegueFechaActual();
+
+        function generarListadoSucursales() {
+            const datalistSuc = document.getElementById('sucursales-list');
+            datalistSuc.innerHTML = '';
+            for (let i = 1; i <= 118; i++) {
+                let codigo = "FA" + i.toString().padStart(2, '0');
+                const option = document.createElement('option');
+                option.value = codigo;
+                datalistSuc.appendChild(option);
+            }
+        }
+        generarListadoSucursales();
+        actualizarVisibilidadFANuevoUsuario();
+
+        function actualizarDatalistEnPantalla() {
+            document.getElementById('total-products-msg').innerText = listadoProductos.length > 0 ? `Catálogo actual: ${listadoProductos.length} productos listos.` : "Catálogo vacío. Cargue el archivo oficial en el panel de administración.";
+        }
+
+        function actualizarSelectProveedores(valorPreseleccionado = "Sin Politica") {
+            const selectProv = document.getElementById('prod-prov');
+            if (!selectProv) return;
+            
+            selectProv.innerHTML = '';
+            const opcionesCompletas = ["Sin Politica", ...listaVinetasFijas];
+
+            opcionesCompletas.forEach(vineta => {
+                const option = document.createElement('option');
+                option.value = vineta;
+                option.innerText = vineta;
+                selectProv.appendChild(option);
+            });
+
+            selectProv.value = valorPreseleccionado;
+            if (selectProv.selectedIndex === -1) {
+                selectProv.value = "Sin Politica";
+            }
+            calcularDiagnosticoEnFormulario();
+        }
+
+        // Bloquea (o desbloquea) el select de Proveedor (Viñeta) cuando el
+        // Laboratorio del producto pertenece a listaLaboratoriosLeterago: en
+        // ese caso la viñeta queda fija en "Leterago" y no se debe poder
+        // cambiar manualmente desde el formulario.
+        function actualizarBloqueoProveedor(labAsignado) {
+            const selectProv = document.getElementById('prod-prov');
+            if (!selectProv) return;
+            const esLabLeterago = listaLaboratoriosLeterago.some(l => l.toLowerCase() === (labAsignado || "").toString().trim().toLowerCase());
+            selectProv.disabled = esLabLeterago;
+            selectProv.title = esLabLeterago
+                ? 'Este laboratorio se gestiona bajo la viñeta "Leterago" y no puede cambiarse manualmente.'
+                : '';
+        }
+
+        function autoAsignarLaboratorioYProveedor(nombreProducto) {
+            const prod = (nombreProducto || document.getElementById('prod-name').value).trim();
+            let labAsignado = "Sin Politica";
+            if (mapaProductosLaboratorios[prod]) {
+                labAsignado = mapaProductosLaboratorios[prod];
+            }
+            document.getElementById('prod-lab').value = labAsignado;
+            const vinetaAuto = resolverVinetaAutomatica(labAsignado);
+            actualizarSelectProveedores(vinetaAuto || "Sin Politica");
+            actualizarBloqueoProveedor(labAsignado);
+            calcularDiagnosticoEnFormulario();
+        }
+
+        // ── Autocomplete personalizado ──────────────────────────────
+        let acIndice = -1;
+
+        function acFiltrar() {
+            const q = document.getElementById('prod-name').value.trim().toLowerCase();
+            const dd = document.getElementById('ac-dropdown');
+            acIndice = -1;
+
+            if (q.length === 0) {
+                dd.style.display = 'none';
+                return;
+            }
+
+            const startsWith = listadoProductos.filter(p => p.toLowerCase().startsWith(q));
+            const contains   = listadoProductos.filter(p => !p.toLowerCase().startsWith(q) && p.toLowerCase().includes(q));
+            const resultados = [...startsWith, ...contains].slice(0, 80);
+
+            if (resultados.length === 0) {
+                dd.style.display = 'none';
+                return;
+            }
+
+            dd.innerHTML = resultados.map((p, i) => {
+                const lower = p.toLowerCase();
+                const idx   = lower.indexOf(q);
+                const highlighted = idx >= 0
+                    ? p.slice(0, idx) + '<strong style="color:#0056b3;">' + p.slice(idx, idx + q.length) + '</strong>' + p.slice(idx + q.length)
+                    : p;
+                return '<div data-idx="' + i + '" data-value="' + p.replace(/"/g,'&quot;') + '" ' +
+                    'style="padding:7px 11px; cursor:pointer; border-bottom:1px solid #f0f0f0;" ' +
+                    'onmousedown="acSeleccionar(this)" ' +
+                    'onmouseover="acHover(this)">' + highlighted + '</div>';
+            }).join('');
+
+            dd.style.display = 'block';
+        }
+
+        function acHover(el) {
+            document.querySelectorAll('#ac-dropdown div').forEach(d => d.style.background = '');
+            el.style.background = '#eef4ff';
+            acIndice = parseInt(el.dataset.idx);
+        }
+
+        function acNavegar(e) {
+            const dd = document.getElementById('ac-dropdown');
+            const items = dd.querySelectorAll('div');
+            if (!items.length) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                acIndice = Math.min(acIndice + 1, items.length - 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                acIndice = Math.max(acIndice - 1, 0);
+            } else if (e.key === 'Enter' || e.key === 'Tab') {
+                if (acIndice >= 0 && items[acIndice]) {
+                    e.preventDefault();
+                    acSeleccionar(items[acIndice]);
+                }
+                return;
+            } else if (e.key === 'Escape') {
+                dd.style.display = 'none';
+                return;
+            } else { return; }
+
+            items.forEach(d => d.style.background = '');
+            if (items[acIndice]) {
+                items[acIndice].style.background = '#eef4ff';
+                items[acIndice].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        function acSeleccionar(el) {
+            const valor = el.dataset.value;
+            document.getElementById('prod-name').value = valor;
+            document.getElementById('ac-dropdown').style.display = 'none';
+            autoAsignarLaboratorioYProveedor(valor);
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!document.getElementById('autocomplete-wrapper').contains(e.target)) {
+                document.getElementById('ac-dropdown').style.display = 'none';
+            }
+        });
+        // ── Fin Autocomplete ────────────────────────────────────────
+
+        document.getElementById('politicas-file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    
+                    if (registros.length === 0) { alert("El archivo de políticas está vacío."); return; }
+
+                    let temporalesPoliticas = {};
+                    let contadorCargados = 0;
+
+                    registros.forEach(reg => {
+                        let prov = (reg['Proveedor'] || reg['Viñeta'] || reg['Vineta'] || "").toString().trim();
+                        let lab  = (reg['Laboratorio'] || reg['laboratorio'] || "").toString().trim();
+                        let obs  = (reg['Observaciones'] || reg['Observations'] || "").toString().trim();
+                        if (prov !== "" && lab !== "") {
+                            let numMatch = obs.match(/\d+/);
+                            let mesesLimite = numMatch ? parseInt(numMatch[0]) : 1;
+                            let clave = prov.toLowerCase() + "||" + lab.toLowerCase();
+                            if (!temporalesPoliticas[clave] || mesesLimite > temporalesPoliticas[clave].meses) {
+                                temporalesPoliticas[clave] = { meses: mesesLimite, observaciones: obs };
+                            }
+                            contadorCargados++;
+                        }
+                    });
+
+                    maestroPoliticas = temporalesPoliticas;
+                    localStorage.setItem('maestro_politicas_vencidos', JSON.stringify(maestroPoliticas));
+
+                    globalVencidos.forEach(item => {
+                        item.estadoRecuperacion = evaluarEstadoRecuperacion(item.proveedor, item.laboratorio);
+                    });
+                    localStorage.setItem('vencidos', JSON.stringify(globalVencidos));
+
+                    actualizarMensajeEstadoPoliticas();
+                    actualizarSelectProveedores(document.getElementById('prod-prov').value);
+                    actualizarTablaReporte();
+                    const numPares = Object.keys(temporalesPoliticas).length;
+                    alert(`¡Éxito! Se cargaron ${numPares} políticas (pares Viñeta + Laboratorio).`);
+                } catch (error) {
+                    alert("Error al procesar el archivo de políticas.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function actualizarMensajeEstadoPoliticas() {
+            const numLabs = Object.keys(maestroPoliticas).length;
+            const msgEl = document.getElementById('politicas-status-msg');
+            if (msgEl) {
+                msgEl.innerText = numLabs > 0 ? `✓ Políticas activas: ${numLabs} pares Viñeta+Laboratorio cargados.` : "Sin políticas cargadas — todos los estados se basan en lista fija.";
+            }
+        }
+
+        function evaluarEstadoRecuperacion(proveedor, laboratorio) {
+            proveedor = proveedor != null ? String(proveedor) : "";
+            laboratorio = laboratorio != null ? String(laboratorio) : "";
+
+            // Regla dura: estas viñetas son irrecuperables siempre, sin
+            // importar si hay o no política Viñeta+Laboratorio cargada.
+            if (listaVinetasSiempreIrrecuperables.some(v => v.toLowerCase() === proveedor.toLowerCase())) {
+                return "Irrecuperable";
+            }
+
+            if (!proveedor || proveedor === "" || proveedor === "Sin Politica") {
+                return "Irrecuperable";
+            }
+            if (Object.keys(maestroPoliticas).length > 0) {
+                if (!laboratorio || laboratorio === "" || laboratorio === "Sin Politica") {
+                    return "Irrecuperable";
+                }
+                let clave = proveedor.toLowerCase() + "||" + laboratorio.toLowerCase();
+                return maestroPoliticas[clave] ? "Recuperable" : "Irrecuperable";
+            }
+            return listaVinetasFijas.includes(proveedor) ? "Recuperable" : "Irrecuperable";
+        }
+
+        // Venta del producto en SU PROPIA sucursal, según el reporte masivo
+        // de ventas cargado (mapaTop10Ventas). 0 si nunca se vendió ahí o si
+        // no hay datos de ventas cargados.
+        function obtenerVentaEnSucursal(item) {
+            const registros = mapaTop10Ventas[item.producto];
+            if (!registros || !registros.length) return 0;
+            const recordSuc = registros.find(f => String(f.sucursal).toUpperCase() === String(item.sucursal || '').toUpperCase());
+            return recordSuc ? (Number(recordSuc.quantity) || 0) : 0;
+        }
+
+        // Días de calendario que faltan para la fecha de vencimiento (string
+        // 'yyyy-mm-dd'). Negativo si ya venció. null si la fecha no es
+        // interpretable.
+        function diasHastaVencimiento(fechaVencStr) {
+            if (!fechaVencStr) return null;
+            const partes = String(fechaVencStr).trim().split('-');
+            if (partes.length !== 3) return null;
+            const anio = parseInt(partes[0]), mes = parseInt(partes[1]), dia = parseInt(partes[2]);
+            if (isNaN(anio) || isNaN(mes) || isNaN(dia)) return null;
+            const fechaVenc = new Date(anio, mes - 1, dia);
+            if (isNaN(fechaVenc)) return null;
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            fechaVenc.setHours(0, 0, 0, 0);
+            return Math.round((fechaVenc - hoy) / (1000 * 60 * 60 * 24));
+        }
+
+        // Prioridad de trabajo (Alta/Baja) de un registro IRRECUPERABLE:
+        // compara cuánto se vende ese producto en su propia sucursal (~3
+        // meses, según el reporte de ventas cargado) frente a la cantidad que
+        // se está venciendo. Solo aplica a Irrecuperables: los Recuperables ya
+        // tienen su propia ruta de traslado/recuperación vía política y
+        // devuelven null (no se priorizan con este criterio).
+        //   Baja: la venta es al menos 400% (4×) la cantidad a vencer.
+        //   Alta: la venta no llega a ese 400% (incluye sin venta).
+        // La fecha de vencimiento no modifica la prioridad.
+        function calcularPrioridadTrabajo(item, ventaEnSucursal) {
+            const estadoRec = evaluarEstadoRecuperacion(item.proveedor || '', item.laboratorio || '');
+            if (estadoRec !== 'Irrecuperable') return null;
+
+            const venta = Number(ventaEnSucursal) || 0;
+            const cantidadVencida = Number(item.cantidad) || 0;
+
+            if (cantidadVencida <= 0 || venta < cantidadVencida * PRIORIDAD_FACTOR_VENTA_VS_VENCIMIENTO) {
+                return 'Alta';
+            }
+            return 'Baja';
+        }
+
+        function infoPrioridad(prioridad) {
+            switch (prioridad) {
+                case 'Alta': return { icono: '🔴', clase: 'badge-prioridad-alta' };
+                case 'Baja': return { icono: '🟢', clase: 'badge-prioridad-baja' };
+                default: return { icono: '➖', clase: 'badge-prioridad-na' };
+            }
+        }
+
+        function toggleFiltroPrioridad(nivel) {
+            filtroPrioridadActivo = (filtroPrioridadActivo === nivel) ? '' : nivel;
+            ['alta', 'baja'].forEach(n => {
+                const btn = document.getElementById('btn-prioridad-' + n);
+                if (btn) btn.classList.toggle('activo', filtroPrioridadActivo.toLowerCase() === n);
+            });
+            actualizarTablaReporte();
+        }
+
+        function obtenerPolitica(proveedor, laboratorio) {
+            proveedor = proveedor != null ? String(proveedor) : "";
+            laboratorio = laboratorio != null ? String(laboratorio) : "";
+            if (listaVinetasSiempreIrrecuperables.some(v => v.toLowerCase() === proveedor.toLowerCase())) return null;
+            if (!proveedor || !laboratorio || Object.keys(maestroPoliticas).length === 0) return null;
+            let clave = proveedor.toLowerCase() + "||" + laboratorio.toLowerCase();
+            return maestroPoliticas[clave] || null;
+        }
+
+        function calcularDiagnosticoEnFormulario() {
+            const proveedor = document.getElementById('prod-prov').value;
+            const laboratorio = (document.getElementById('prod-lab').value || "").trim();
+            const container = document.getElementById('form-diagnostico-container');
+            const badge = document.getElementById('form-diagnostico-badge');
+
+            if (proveedor && proveedor !== "") {
+                const res = evaluarEstadoRecuperacion(proveedor, laboratorio);
+                container.style.display = 'block';
+                const politica = obtenerPolitica(proveedor, laboratorio);
+                badge.innerHTML = res.toUpperCase() +
+                    (politica ? '<br><small style="font-weight:normal;font-size:0.82em;margin-top:4px;display:block;">' + politica.observaciones + '</small>' : '');
+                if (res === "Recuperable") {
+                    badge.style.backgroundColor = '#d4edda';
+                    badge.style.color = '#155724';
+                    badge.style.border = '1px solid #c3e6cb';
+                } else {
+                    badge.style.backgroundColor = '#f8d7da';
+                    badge.style.color = '#721c24';
+                    badge.style.border = '1px solid #f5c6cb';
+                }
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        if (localStorage.getItem('maestro_politicas_vencidos')) {
+            maestroPoliticas = JSON.parse(localStorage.getItem('maestro_politicas_vencidos'));
+        }
+        actualizarMensajeEstadoPoliticas();
+
+        function actualizarMensajeEstadoVentas() {
+            const numProds = Object.keys(mapaTop10Ventas).length;
+            const msgEl = document.getElementById('ventas-status-msg');
+            if (msgEl) {
+                msgEl.innerText = numProds > 0 ? `✓ Base de datos analítica activa: ${numProds} productos mapeados.` : "Sin datos de venta masiva cargados.";
+            }
+        }
+
+        // Cargar caché de ventas al arrancar la aplicación
+        document.addEventListener("DOMContentLoaded", async () => {
+            const ventasCache = await obtenerDeCacheVentas();
+            if (ventasCache) {
+                mapaTop10Ventas = ventasCache;
+                actualizarMensajeEstadoVentas();
+                actualizarTablaReporte();
+            }
+        });
+
+        // Fuente única de verdad: qué registros puede ver el usuario actual
+        // antes de aplicar los filtros de la UI (sucursal/mes/etc).
+        // SuperAdmin: todo. Admin y User: solo los de su FA asignada.
+        function obtenerVencidosVisibles() {
+            if (!usuarioActual || esSuperUsuario(usuarioActual)) {
+                return [...globalVencidos];
+            }
+            const faAsignada = (usuarioActual.sucursal || '').toUpperCase();
+            return globalVencidos.filter(item => item.sucursal && String(item.sucursal).toUpperCase() === faAsignada);
+        }
+
+        // Un producto está "en riesgo con venta en otra FA" cuando, según el
+        // reporte masivo de ventas cargado, alguna sucursal DISTINTA a la de
+        // origen del vencido sí registra venta de ese producto: es candidato
+        // a traslado/redistribución en lugar de perderse.
+        function tieneVentaEnOtraFA(item) {
+            const registros = mapaTop10Ventas[item.producto];
+            if (!registros || !registros.length) return false;
+            return registros.some(r =>
+                String(r.sucursal).toUpperCase() !== String(item.sucursal || '').toUpperCase() &&
+                Number(r.quantity) > 0
+            );
+        }
+
+        function calcularStatsRiesgoOtraFA() {
+            let base = obtenerVencidosVisibles();
+
+            // Si hay filtros activos en el reporte (Sucursal, Mes Venc., Mes Reg.,
+            // Política o Estado Gestión), el dashboard se recalcula solo con lo
+            // que esos filtros dejan visible.
+            const selectSucursal = document.getElementById('filter-sucursal');
+            const selectMesVenc = document.getElementById('filter-mes-venc');
+            const selectAnioVenc = document.getElementById('filter-anio-venc');
+            const selectMesReg = document.getElementById('filter-mes-registro');
+            const selectRecuperacion = document.getElementById('filter-recuperacion');
+            const selectGestion = document.getElementById('filter-estado-gestion');
+
+            const filtroSucursalActivo = selectSucursal ? selectSucursal.value : '';
+            const filtroMesVencActivo = selectMesVenc ? selectMesVenc.value : '';
+            const filtroMesRegActivo = selectMesReg ? selectMesReg.value : '';
+            const filtroRecuperacionActivo = selectRecuperacion ? selectRecuperacion.value : '';
+            const filtroGestionActivo = selectGestion ? selectGestion.value : '';
+
+            if (filtroSucursalActivo !== '') {
+                base = base.filter(item => item.sucursal && String(item.sucursal).toUpperCase() === filtroSucursalActivo.toUpperCase());
+            }
+            if (filtroMesVencActivo !== '') {
+                base = base.filter(item => item.mes === filtroMesVencActivo);
+            }
+            if (selectAnioVenc && selectAnioVenc.value !== '') {
+                base = base.filter(item => String(item.anio) === selectAnioVenc.value);
+            }
+            if (filtroMesRegActivo !== '') {
+                base = base.filter(item => item.mesRegistro === filtroMesRegActivo);
+            }
+            if (filtroRecuperacionActivo !== '') {
+                base = base.filter(item => item.estadoRecuperacion === filtroRecuperacionActivo);
+            }
+            if (filtroGestionActivo !== '') {
+                base = base.filter(item => (item.estadoGestion || 'Pendiente') === filtroGestionActivo);
+            }
+
+            base = base.filter(tieneVentaEnOtraFA);
+            let pendientes = 0;
+            const conteoPorEstado = {};
+            ESTADOS_GESTION.forEach(e => conteoPorEstado[e.valor] = 0);
+            base.forEach(item => {
+                const g = item.estadoGestion || 'Pendiente';
+                if (g !== 'Pendiente' && conteoPorEstado.hasOwnProperty(g)) conteoPorEstado[g]++;
+                else if (g === 'Pendiente') pendientes++;
+            });
+            const totalTrabajado = Object.values(conteoPorEstado).reduce((a, b) => a + b, 0);
+            return {
+                total: base.length,
+                pendientes,
+                totalTrabajado,
+                porEstado: conteoPorEstado
+            };
+        }
+
+        function actualizarDashboardRiesgo() {
+            const elTotal = document.getElementById('dash-total-riesgo');
+            if (!elTotal) return; // el dashboard aún no está en pantalla (antes del login)
+
+            const stats = calcularStatsRiesgoOtraFA();
+            elTotal.innerText = stats.total.toLocaleString('es-HN');
+            document.getElementById('dash-pendientes').innerText = stats.pendientes.toLocaleString('es-HN');
+            document.getElementById('dash-trabajados').innerText = stats.totalTrabajado.toLocaleString('es-HN');
+
+            const pct = stats.total > 0 ? Math.round((stats.totalTrabajado / stats.total) * 100) : 0;
+            document.getElementById('dash-progreso-bar').style.width = pct + '%';
+            document.getElementById('dash-progreso-pct').innerText = pct + '%';
+            document.getElementById('dash-breakdown').innerText =
+                ESTADOS_GESTION.map(e => `${e.icono} ${stats.porEstado[e.valor] || 0} ${e.valor}`).join(' · ');
+
+            document.querySelectorAll('#dashboard-riesgo-card .stat-box').forEach(box => box.classList.remove('active'));
+            if (filtroSoloRiesgoOtraFA) {
+                const selector = filtroGestionAgrupadoRiesgo === 'pendiente' ? '.stat-pendiente'
+                                : filtroGestionAgrupadoRiesgo === 'trabajado' ? '.stat-trabajado'
+                                : '.stat-total';
+                const cajaActiva = document.querySelector('#dashboard-riesgo-card ' + selector);
+                if (cajaActiva) cajaActiva.classList.add('active');
+            }
+
+            const badge = document.getElementById('dash-filtro-activo-badge');
+            if (badge) badge.style.display = filtroSoloRiesgoOtraFA ? 'inline-block' : 'none';
+
+            const badgeFA = document.getElementById('dash-fa-activa-badge');
+            if (badgeFA) {
+                const partes = [];
+                const selectSucursal = document.getElementById('filter-sucursal');
+                const selectMesVenc = document.getElementById('filter-mes-venc');
+                const selectAnioVenc = document.getElementById('filter-anio-venc');
+                const selectMesReg = document.getElementById('filter-mes-registro');
+                const selectRecuperacion = document.getElementById('filter-recuperacion');
+                const selectGestion = document.getElementById('filter-estado-gestion');
+
+                if (selectSucursal && selectSucursal.value !== '') partes.push('📍 ' + selectSucursal.value);
+                if (selectMesVenc && selectMesVenc.value !== '') partes.push('Venc: ' + selectMesVenc.value);
+                if (selectAnioVenc && selectAnioVenc.value !== '') partes.push('Año: ' + selectAnioVenc.value);
+                if (selectMesReg && selectMesReg.value !== '') partes.push('Reg: ' + selectMesReg.value);
+                if (selectRecuperacion && selectRecuperacion.value !== '') partes.push(selectRecuperacion.value);
+                if (selectGestion && selectGestion.value !== '') partes.push(selectGestion.value);
+
+                if (partes.length > 0) {
+                    badgeFA.innerText = partes.join(' · ');
+                    badgeFA.style.display = 'inline-block';
+                } else {
+                    badgeFA.style.display = 'none';
+                }
+            }
+
+            actualizarResumenPorFA();
+            const tabRU = document.getElementById('tab-resumen-usuario');
+            if (tabRU && tabRU.classList.contains('active')) actualizarResumenPorUsuario();
+        }
+
+        // Tabla adicional exclusiva del SuperAdmin: desglose FA por FA de lo
+        // mismo que muestra el dashboard de riesgo, para poder comparar
+        // sucursales entre sí. Respeta los filtros de Mes Venc./Mes Reg./
+        // Política/Estado Gestión, pero ignora el de Sucursal (si no, no
+        // tendría sentido ver "todas las FA" a la vez).
+        function calcularResumenPorFA() {
+            let base = obtenerVencidosVisibles();
+
+            const selectMesVenc = document.getElementById('filter-mes-venc');
+            const selectMesReg = document.getElementById('filter-mes-registro');
+            const selectRecuperacion = document.getElementById('filter-recuperacion');
+            const selectGestion = document.getElementById('filter-estado-gestion');
+
+            if (selectMesVenc && selectMesVenc.value !== '') base = base.filter(item => item.mes === selectMesVenc.value);
+            const selectAnioVencRes = document.getElementById('filter-anio-venc');
+            if (selectAnioVencRes && selectAnioVencRes.value !== '') base = base.filter(item => String(item.anio) === selectAnioVencRes.value);
+            if (selectMesReg && selectMesReg.value !== '') base = base.filter(item => item.mesRegistro === selectMesReg.value);
+            if (selectRecuperacion && selectRecuperacion.value !== '') base = base.filter(item => item.estadoRecuperacion === selectRecuperacion.value);
+            if (selectGestion && selectGestion.value !== '') base = base.filter(item => (item.estadoGestion || 'Pendiente') === selectGestion.value);
+
+            base = base.filter(tieneVentaEnOtraFA);
+
+            const porFA = {};
+            base.forEach(item => {
+                const fa = String(item.sucursal || 'Sin FA').toUpperCase();
+                if (!porFA[fa]) {
+                    porFA[fa] = { fa, total: 0, pendientes: 0, porEstado: {} };
+                    ESTADOS_GESTION.forEach(e => porFA[fa].porEstado[e.valor] = 0);
+                }
+                porFA[fa].total++;
+                const g = item.estadoGestion || 'Pendiente';
+                if (g !== 'Pendiente' && porFA[fa].porEstado.hasOwnProperty(g)) porFA[fa].porEstado[g]++;
+                else if (g === 'Pendiente') porFA[fa].pendientes++;
+            });
+
+            return Object.values(porFA).sort((a, b) => a.fa.localeCompare(b.fa));
+        }
+
+        function actualizarResumenPorFA() {
+            const card = document.getElementById('dashboard-resumen-fa-card');
+            if (!card) return;
+
+            if (!usuarioActual || !esSuperUsuario(usuarioActual)) {
+                card.style.display = 'none';
+                return;
+            }
+            card.style.display = 'block';
+
+            const filas = calcularResumenPorFA();
+            const tbody = document.getElementById('tabla-resumen-fa-body');
+            if (!tbody) return;
+
+            if (filas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" style="padding:12px; text-align:center; color:#888;">Sin registros en riesgo con venta en otras FA para los filtros actuales.</td></tr>';
+                return;
+            }
+
+            const selectSucursal = document.getElementById('filter-sucursal');
+            tbody.innerHTML = filas.map(f => {
+                const trabajados = Object.values(f.porEstado).reduce((a, b) => a + b, 0);
+                const pct = f.total > 0 ? Math.round((trabajados / f.total) * 100) : 0;
+                const celdasEstados = ESTADOS_GESTION.map(e =>
+                    `<td style="padding:8px; text-align:right;">${(f.porEstado[e.valor] || 0).toLocaleString('es-HN')}</td>`
+                ).join('');
+                return `
+                    <tr style="border-bottom:1px solid var(--border-color); cursor:pointer;" onclick="filtrarResumenPorFA('${f.fa}')" title="Ver ${f.fa} en el reporte">
+                        <td style="padding:8px; font-weight:bold;">${f.fa}</td>
+                        <td style="padding:8px; text-align:right;">${f.total.toLocaleString('es-HN')}</td>
+                        <td style="padding:8px; text-align:right; color:#e65100;">${f.pendientes.toLocaleString('es-HN')}</td>
+                        ${celdasEstados}
+                        <td style="padding:8px; text-align:right; color: var(--secondary-color); font-weight:bold;">${trabajados.toLocaleString('es-HN')}</td>
+                        <td style="padding:8px;">
+                            <div class="dash-progreso-track" style="width:100px; display:inline-block; vertical-align:middle;">
+                                <div class="dash-progreso-fill" style="width:${pct}%;"></div>
+                            </div>
+                            <span style="font-size:0.85em; color:#666; margin-left:6px;">${pct}%</span>
+                        </td>
+                    </tr>`;
+            }).join('');
+        }
+
+        // ---- Resumen por Usuario (Admin y SuperAdmin) ----
+        // Agrupa por "Registrado Por". Usa obtenerVencidosVisibles(), así que un
+        // Admin solo ve a los usuarios (y registros) de su FA asignada; el
+        // SuperAdmin ve todas las FA.
+        function fechaRegistroATimestamp(txt) {
+            const m = String(txt || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            return m ? new Date(+m[3], +m[2] - 1, +m[1]).getTime() : 0;
+        }
+
+        function poblarSelectMesResumenUsuario() {
+            const sel = document.getElementById('resumen-usuario-mes');
+            if (!sel) return;
+            const previo = sel.value;
+            const meses = new Set();
+            obtenerVencidosVisibles().forEach(i => { if (i.mesRegistro) meses.add(i.mesRegistro); });
+            sel.innerHTML = '<option value="">-- Todos --</option>' +
+                ordenarMesesCalendario(Array.from(meses)).map(m => `<option value="${escaparAtributoHTML(m)}">${escaparAtributoHTML(m)}</option>`).join('');
+            sel.value = meses.has(previo) ? previo : '';
+        }
+
+        function calcularResumenPorUsuario() {
+            let base = obtenerVencidosVisibles();
+            const sel = document.getElementById('resumen-usuario-mes');
+            if (sel && sel.value !== '') base = base.filter(i => i.mesRegistro === sel.value);
+
+            const porUsuario = {};
+            base.forEach(item => {
+                const nombre = String(item.usuario || '').trim() || 'Sin usuario';
+                const clave = nombre.toLowerCase();
+                if (!porUsuario[clave]) {
+                    porUsuario[clave] = { usuario: nombre, fas: new Set(), registros: 0, unidades: 0, pendientes: 0, gestionados: 0, ultimo: 0, ultimoTxt: '' };
+                }
+                const u = porUsuario[clave];
+                if (item.sucursal) u.fas.add(String(item.sucursal).toUpperCase());
+                u.registros++;
+                u.unidades += parseInt(item.cantidad) || 0;
+                if ((item.estadoGestion || 'Pendiente') === 'Pendiente') u.pendientes++; else u.gestionados++;
+                const ts = fechaRegistroATimestamp(item.fechaRegistro);
+                if (ts > u.ultimo || (!u.ultimoTxt && item.fechaRegistro)) { u.ultimo = Math.max(ts, u.ultimo); u.ultimoTxt = item.fechaRegistro || u.ultimoTxt; }
+            });
+
+            return Object.values(porUsuario)
+                .map(u => ({ ...u, fas: Array.from(u.fas).sort() }))
+                .sort((a, b) => b.registros - a.registros || a.usuario.localeCompare(b.usuario));
+        }
+
+        function actualizarResumenPorUsuario() {
+            const tbody = document.getElementById('tabla-resumen-usuario-body');
+            if (!tbody) return;
+            if (!usuarioActual || !esAdminOSuperior(usuarioActual)) { tbody.innerHTML = ''; return; }
+
+            poblarSelectMesResumenUsuario();
+            const desc = document.getElementById('resumen-usuario-descripcion');
+            if (desc) {
+                desc.innerText = esSuperUsuario(usuarioActual)
+                    ? 'Registros ingresados por cada usuario (todas las FA) y cuánto de ello ya se gestionó.'
+                    : 'Registros ingresados por cada usuario de tu FA (' + (usuarioActual.sucursal || 'sin asignar') + ') y cuánto de ello ya se gestionó.';
+            }
+
+            const filas = calcularResumenPorUsuario();
+            if (filas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="padding:12px; text-align:center; color:#888;">Sin registros para mostrar.</td></tr>';
+                return;
+            }
+
+            const f0 = n => n.toLocaleString('es-HN');
+            const totRegistros = filas.reduce((a, f) => a + f.registros, 0);
+            const totUnidades = filas.reduce((a, f) => a + f.unidades, 0);
+            const totPend = filas.reduce((a, f) => a + f.pendientes, 0);
+            const totGest = filas.reduce((a, f) => a + f.gestionados, 0);
+            const pctTot = totRegistros > 0 ? Math.round((totGest / totRegistros) * 100) : 0;
+
+            tbody.innerHTML = filas.map(f => {
+                const pct = f.registros > 0 ? Math.round((f.gestionados / f.registros) * 100) : 0;
+                return `
+                    <tr style="border-bottom:1px solid var(--border-color);">
+                        <td style="padding:8px; font-weight:bold;">${escaparAtributoHTML(f.usuario)}</td>
+                        <td style="padding:8px;">${escaparAtributoHTML(f.fas.join(', ') || '—')}</td>
+                        <td style="padding:8px; text-align:right;">${f0(f.registros)}</td>
+                        <td style="padding:8px; text-align:right;">${f0(f.unidades)}</td>
+                        <td style="padding:8px; text-align:right; color:#e65100;">${f0(f.pendientes)}</td>
+                        <td style="padding:8px; text-align:right; color: var(--secondary-color); font-weight:bold;">${f0(f.gestionados)}</td>
+                        <td style="padding:8px;">
+                            <div class="dash-progreso-track" style="width:100px; display:inline-block; vertical-align:middle;">
+                                <div class="dash-progreso-fill" style="width:${pct}%;"></div>
+                            </div>
+                            <span style="font-size:0.85em; color:#666; margin-left:6px;">${pct}%</span>
+                        </td>
+                        <td style="padding:8px;">${escaparAtributoHTML(f.ultimoTxt || '—')}</td>
+                    </tr>`;
+            }).join('') + `
+                    <tr style="background:var(--light-color); font-weight:bold;">
+                        <td style="padding:8px;">TOTAL</td>
+                        <td style="padding:8px;"></td>
+                        <td style="padding:8px; text-align:right;">${f0(totRegistros)}</td>
+                        <td style="padding:8px; text-align:right;">${f0(totUnidades)}</td>
+                        <td style="padding:8px; text-align:right; color:#e65100;">${f0(totPend)}</td>
+                        <td style="padding:8px; text-align:right; color: var(--secondary-color);">${f0(totGest)}</td>
+                        <td style="padding:8px;"><span style="font-size:0.85em;">${pctTot}%</span></td>
+                        <td style="padding:8px;"></td>
+                    </tr>`;
+        }
+
+        function exportarResumenPorUsuario() {
+            if (!usuarioActual || !esAdminOSuperior(usuarioActual)) return;
+            const filas = calcularResumenPorUsuario();
+            if (filas.length === 0) { alert("No hay datos para exportar."); return; }
+            const datos = filas.map(f => ({
+                'Usuario': f.usuario,
+                'FA': f.fas.join(', '),
+                'Registros': f.registros,
+                'Unidades': f.unidades,
+                'Pendientes': f.pendientes,
+                'Gestionados': f.gestionados,
+                'Avance %': f.registros > 0 ? Math.round((f.gestionados / f.registros) * 100) : 0,
+                'Último registro': f.ultimoTxt || ''
+            }));
+            const ws = XLSX.utils.json_to_sheet(datos);
+            ws['!cols'] = [{wch:22},{wch:14},{wch:11},{wch:11},{wch:12},{wch:13},{wch:10},{wch:16}];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Resumen por Usuario');
+            XLSX.writeFile(wb, 'Resumen_por_Usuario_' + new Date().toISOString().slice(0,10) + '.xlsx');
+        }
+
+        function filtrarResumenPorFA(fa) {
+            const selectSucursal = document.getElementById('filter-sucursal');
+            if (selectSucursal) selectSucursal.value = fa;
+            cambiarTab('tab-registro');
+            actualizarTablaReporte();
+        }
+
+        function toggleFiltroRiesgoOtraFA() {
+            filtroSoloRiesgoOtraFA = document.getElementById('dash-toggle-filtro').checked;
+            if (!filtroSoloRiesgoOtraFA) filtroGestionAgrupadoRiesgo = '';
+            actualizarTablaReporte();
+        }
+
+        function filtrarDashboardRiesgo(tipo) {
+            filtroSoloRiesgoOtraFA = true;
+            document.getElementById('dash-toggle-filtro').checked = true;
+            filtroGestionAgrupadoRiesgo = (tipo === 'pendiente' || tipo === 'trabajado') ? tipo : '';
+            cambiarTab('tab-registro');
+            actualizarTablaReporte();
+        }
+
+        function quitarFiltroDashboardRiesgo() {
+            filtroSoloRiesgoOtraFA = false;
+            filtroGestionAgrupadoRiesgo = '';
+            document.getElementById('dash-toggle-filtro').checked = false;
+            actualizarTablaReporte();
+        }
+
+        function filtrarLista(lista) {
+            const filtroSucursal = document.getElementById('filter-sucursal').value;
+            const filtroMesVenc = document.getElementById('filter-mes-venc').value;
+            const filtroAnioVenc = (document.getElementById('filter-anio-venc') || {}).value || '';
+            const filtroMesRegistro = document.getElementById('filter-mes-registro').value;
+            const filtroRec = document.getElementById('filter-recuperacion').value;
+            const filtroGestion = document.getElementById('filter-estado-gestion').value;
+
+            if (filtroSucursal !== "") lista = lista.filter(item => item.sucursal && String(item.sucursal).toUpperCase() === filtroSucursal.toUpperCase());
+            if (filtroMesVenc !== "") lista = lista.filter(item => item.mes && item.mes === filtroMesVenc);
+            if (filtroAnioVenc !== "") lista = lista.filter(item => String(item.anio) === filtroAnioVenc);
+            if (filtroMesRegistro !== "") lista = lista.filter(item => item.mesRegistro && item.mesRegistro === filtroMesRegistro);
+            if (filtroRec !== "") lista = lista.filter(item => item.estadoRecuperacion === filtroRec);
+            if (filtroGestion !== "") lista = lista.filter(item => (item.estadoGestion || "Pendiente") === filtroGestion);
+            
+            return lista;
+        }
+
+        function exportarFormatoCargaMasiva() {
+            let listaFiltrada = obtenerVencidosVisibles();
+            listaFiltrada = filtrarLista(listaFiltrada);
+
+            const datosMasivos = listaFiltrada.map(item => ({
+                'Sucursal': item.sucursal || '',
+                'Producto': item.producto || '',
+                'Laboratorio': item.laboratorio || '',
+                'Proveedor (Viñeta)': item.proveedor || '', 
+                'Cant. Vencida': parseInt(item.cantidad) || 0,
+                'Fecha de Vencimiento': item.fecha || '',
+                'Estado Gestión': item.estadoGestion || 'Pendiente',
+                'Registrado Por': item.usuario || 'Sistema',
+                'Registrado El': item.fechaRegistro || ''
+            }));
+
+            if (datosMasivos.length === 0) {
+                datosMasivos.push({
+                    'Sucursal': 'FA01',
+                    'Producto': 'Abrilar Jarabe, frasco 200ml',
+                    'Laboratorio': 'Megalabs',
+                    'Proveedor (Viñeta)': 'Leterago',
+                    'Cant. Vencida': 10,
+                    'Fecha de Vencimiento': '2026-12-31',
+                    'Estado Gestión': 'Pendiente',
+                    'Registrado Por': usuarioActual ? usuarioActual.usuario : 'Admin',
+                    'Registrado El': new Date().toLocaleDateString('es-HN', { year: 'numeric', month: '2-digit', day: '2-digit' })
+                });
+            }
+
+            const hojaTrabajo = XLSX.utils.json_to_sheet(datosMasivos);
+            const libroTrabajo = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(libroTrabajo, hojaTrabajo, "Productos Vencidos");
+            XLSX.writeFile(libroTrabajo, "Formato_Carga_Masiva_Productos.xlsx");
+        }
+
+        document.getElementById('productos-masivo-file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!usuarioActual || !esAdminOSuperior(usuarioActual)) {
+                alert('No tiene permiso para usar la Carga Masiva de Próximos a Vencer.');
+                e.target.value = '';
+                return;
+            }
+
+            const puedeCargarMesesAnteriores = esSuperUsuario(usuarioActual);
+            const hoy = new Date();
+            const anioActual = hoy.getFullYear();
+            const mesActual = hoy.getMonth(); // 0-indexado
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    
+                    if (registros.length === 0) { alert("El archivo de Excel seleccionado está vacío."); return; }
+
+                    let nuevosRegistrosCargados = 0;
+                    let nuevosRegistrosArray = [];
+                    let registrosRechazadosPorMes = 0;
+
+                    registros.forEach((reg, index) => {
+                        let sucursal = reg['Sucursal'] ? reg['Sucursal'].toString().trim().toUpperCase() : "";
+                        let producto = reg['Producto'] ? reg['Producto'].toString().trim() : "";
+                        
+                        let laboratorio = reg['Laboratorio'] ? reg['Laboratorio'].toString().trim() : "";
+                        if (laboratorio === "" && mapaProductosLaboratorios[producto]) {
+                            laboratorio = mapaProductosLaboratorios[producto];
+                        } else if (laboratorio === "") {
+                            laboratorio = "Sin Politica";
+                        }
+
+                        let proveedor = "Sin Politica";
+                        if (reg['Proveedor (Viñeta)']) {
+                            proveedor = reg['Proveedor (Viñeta)'].toString().trim();
+                        } else if (reg['Viñeta']) {
+                            proveedor = reg['Viñeta'].toString().trim();
+                        } else if (reg['Proveedor']) {
+                            proveedor = reg['Proveedor'].toString().trim();
+                        } else {
+                            proveedor = laboratorio;
+                        }
+
+                        let coincidenciaLista = listaVinetasFijas.find(v => v.toLowerCase() === proveedor.toLowerCase());
+                        if (coincidenciaLista) {
+                            proveedor = coincidenciaLista;
+                        } else {
+                            const vinetaAuto = resolverVinetaAutomatica(laboratorio);
+                            proveedor = vinetaAuto || "Sin Politica";
+                        }
+
+                        let cantidad = reg['Cant. Vencida'] ? parseInt(reg['Cant. Vencida']) : 0;
+                        let rawFechaVenc = reg['Fecha de Vencimiento'];
+                        let fechaVencTexto = (rawFechaVenc instanceof Date && !isNaN(rawFechaVenc)) ? rawFechaVenc.toISOString().split('T')[0] : (rawFechaVenc ? rawFechaVenc.toString().trim() : "");
+                        let registradoPor = reg['Registrado Por'] ? reg['Registrado Por'].toString().trim() : "Sistema";
+                        
+                        let rawFechaReg = reg['Registrado El'];
+                        let fechaRegTexto = (rawFechaReg instanceof Date && !isNaN(rawFechaReg)) ? rawFechaReg.toLocaleDateString('es-HN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : (rawFechaReg ? rawFechaReg.toString().trim() : "");
+                        
+                        if (fechaRegTexto === "") {
+                            fechaRegTexto = new Date().toLocaleDateString('es-HN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                        }
+                        
+                        let estGestionExcel = reg['Estado Gestión'] ? reg['Estado Gestión'].toString().trim() : "Pendiente";
+
+                        if (sucursal !== "" && producto !== "" && fechaVencTexto !== "") {
+                            const dateParts = fechaVencTexto.split('-');
+                            let mesFormateado = "Indefinido", anioFormateado = "Indefinido";
+                            if (dateParts.length === 3) {
+                                const fObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+                                const nMes = fObj.toLocaleString('es-HN', { month: 'long' });
+                                mesFormateado = nMes.charAt(0).toUpperCase() + nMes.slice(1);
+                                anioFormateado = fObj.getFullYear();
+                            }
+
+                            let mesRegistroTexto = "Indefinido", parsedRegDate = null;
+                            if (rawFechaReg instanceof Date) {
+                                parsedRegDate = rawFechaReg;
+                            } else if (fechaRegTexto.includes('/')) { 
+                                const p = fechaRegTexto.split('/'); parsedRegDate = new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0])); 
+                            } else if (fechaRegTexto.includes('-')) { 
+                                const p = fechaRegTexto.split('-'); parsedRegDate = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2])); 
+                            }
+
+                            if (parsedRegDate && !isNaN(parsedRegDate)) {
+                                const nMesReg = parsedRegDate.toLocaleString('es-HN', { month: 'long' });
+                                mesRegistroTexto = nMesReg.charAt(0).toUpperCase() + nMesReg.slice(1);
+                            } else {
+                                const nMesReg = new Date().toLocaleString('es-HN', { month: 'long' });
+                                mesRegistroTexto = nMesReg.charAt(0).toUpperCase() + nMesReg.slice(1);
+                            }
+
+                            // Un Admin normal solo puede cargar registros del mes en curso.
+                            // Si la fecha de registro cae en un mes anterior, se rechaza esa
+                            // fila salvo que quien esté subiendo el archivo sea Super Usuario.
+                            if (!puedeCargarMesesAnteriores && parsedRegDate && !isNaN(parsedRegDate)) {
+                                const esMesAnterior = (parsedRegDate.getFullYear() < anioActual) ||
+                                    (parsedRegDate.getFullYear() === anioActual && parsedRegDate.getMonth() < mesActual);
+                                if (esMesAnterior) {
+                                    registrosRechazadosPorMes++;
+                                    return;
+                                }
+                            }
+
+                            let estadoRecuperacion = evaluarEstadoRecuperacion(proveedor, laboratorio);
+
+                            let itemNuevo = {
+                                id: Date.now() + index, sucursal, producto, laboratorio, proveedor, vineta: proveedor, cantidad, fecha: fechaVencTexto,
+                                mes: mesFormateado, anio: anioFormateado, fechaRegistro: fechaRegTexto, mesRegistro: mesRegistroTexto, 
+                                usuario: registradoPor, estadoRecuperacion: estadoRecuperacion, estadoGestion: estGestionExcel
+                            };
+
+                            globalVencidos.push(itemNuevo);
+                            nuevosRegistrosArray.push(itemNuevo);
+                            nuevosRegistrosCargados++;
+                        }
+                    });
+
+                    localStorage.setItem('vencidos', JSON.stringify(globalVencidos));
+                    actualizarSelectProveedores(document.getElementById('prod-prov').value);
+                    actualizarTablaReporte(true);
+
+                    let mensajeStatus = `✓ ¡Éxito! Se inyectaron al reporte ${nuevosRegistrosCargados} filas trabajadas desde el Excel.`;
+                    let mensajeAlerta = `¡Carga masiva finalizada con éxito!\nSe añadieron ${nuevosRegistrosCargados} registros analizados según su proveedor/viñeta.`;
+                    if (registrosRechazadosPorMes > 0) {
+                        mensajeStatus += ` (${registrosRechazadosPorMes} de mes(es) anterior(es) omitidos, requieren Super Usuario)`;
+                        mensajeAlerta += `\n\n⚠️ ${registrosRechazadosPorMes} registro(s) de meses anteriores fueron omitidos: solo el Super Usuario puede cargarlos.`;
+                    }
+                    document.getElementById('productos-masivo-status').innerText = mensajeStatus;
+                    alert(mensajeAlerta);
+                    document.getElementById('productos-masivo-file-input').value = "";
+
+                    if (nuevosRegistrosArray.length > 0) {
+                        enviarASheets(nuevosRegistrosArray);
+                    }
+                } catch (error) {
+                    alert("Error crítico al analizar la estructura del Excel masivo.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // Diferencia en meses "de calendario" entre una fecha de vencimiento
+        // (string 'yyyy-mm-dd') y otra fecha (objeto Date). Ej: Agosto 2026 →
+        // Octubre 2026 = 2. No cuenta días, solo la distancia de mes/año, que
+        // es como las políticas de recuperación definen su ventana ("2 meses").
+        function diferenciaMesesCalendario(fechaVencStr, fechaBase) {
+            if (!fechaVencStr) return null;
+            const partes = String(fechaVencStr).trim().split('-');
+            if (partes.length !== 3) return null;
+            const anioVenc = parseInt(partes[0]), mesVenc = parseInt(partes[1]);
+            if (isNaN(anioVenc) || isNaN(mesVenc)) return null;
+            const anioBase = fechaBase.getFullYear(), mesBase = fechaBase.getMonth() + 1;
+            return (anioVenc - anioBase) * 12 + (mesVenc - mesBase);
+        }
+
+        // Plazo de envío según la política de un Recuperable. La política
+        // exige enviar el producto N meses ANTES de su vencimiento: si ya
+        // le quedan menos de N meses, el plazo se perdió y ya no se puede
+        // enviar. Devuelve null si el registro no es Recuperable o no hay
+        // política/fecha interpretable.
+        //   { meses: N de la política, restantes: meses que le quedan,
+        //     fueraDePlazo: true si restantes < N }
+        function estadoPlazoPolitica(item) {
+            const rec = evaluarEstadoRecuperacion(item.proveedor || '', item.laboratorio || '');
+            if (rec !== 'Recuperable') return null;
+            const politica = obtenerPolitica(item.proveedor || '', item.laboratorio || '');
+            if (!politica) return null;
+            const restantes = diferenciaMesesCalendario(item.fecha, new Date());
+            if (restantes === null) return null;
+            return { meses: politica.meses, restantes: restantes, fueraDePlazo: restantes < politica.meses };
+        }
+
+        async function actualizarEstadoGestionInteractiva(id, nuevoEstado) {
+            const index = globalVencidos.findIndex(item => item.id == id);
+            if (index === -1) return;
+
+            const item = globalVencidos[index];
+            const estadoActual = item.estadoGestion || "Pendiente";
+
+            if (estadoActual !== "Pendiente") {
+                alert("⚠️ El Estado de Gestión ya fue definido (" + estadoActual + ") y no puede modificarse.");
+                actualizarTablaReporte();
+                return;
+            }
+
+            item.estadoGestion = nuevoEstado;
+            localStorage.setItem('vencidos', JSON.stringify(globalVencidos));
+
+            await enviarActualizacionEstadoGestion(id, nuevoEstado);
+        }
+
+        // Solo el SuperAdmin puede devolver un registro ya gestionado a "Pendiente".
+        // El resto de roles sigue con el estado bloqueado.
+        async function revertirEstadoGestionAPendiente(id) {
+            if (!usuarioActual || !esSuperUsuario(usuarioActual)) {
+                alert("⛔ Solo el Super Usuario puede devolver un registro a Pendiente.");
+                return;
+            }
+            const index = globalVencidos.findIndex(item => item.id == id);
+            if (index === -1) return;
+
+            const item = globalVencidos[index];
+            const estadoActual = item.estadoGestion || "Pendiente";
+            if (estadoActual === "Pendiente") return;
+
+            if (!confirm("¿Devolver este registro a estado Pendiente?\n\nEstado actual: " + estadoActual)) return;
+
+            item.estadoGestion = "Pendiente";
+            localStorage.setItem('vencidos', JSON.stringify(globalVencidos));
+            actualizarTablaReporte();
+
+            await enviarActualizacionEstadoGestion(id, "Pendiente");
+        }
+
+        // Cambio de estado para el SuperAdmin desde el desplegable de la tabla.
+        // - "Pendiente": usa el flujo de devolución existente (con confirmación).
+        // - Otro estado: confirma y lo aplica; al Sheet se envía primero "Pendiente"
+        //   y luego el nuevo estado para respetar la regla de bloqueo del backend.
+        async function cambiarEstadoGestionSuperUsuario(id, nuevoEstado) {
+            if (!usuarioActual || !esSuperUsuario(usuarioActual)) {
+                alert("⛔ Solo el Super Usuario puede modificar un Estado de Gestión ya definido.");
+                actualizarTablaReporte();
+                return;
+            }
+            const index = globalVencidos.findIndex(item => item.id == id);
+            if (index === -1) return;
+
+            const item = globalVencidos[index];
+            const estadoActual = item.estadoGestion || "Pendiente";
+            if (nuevoEstado === estadoActual) return;
+
+            if (nuevoEstado === "Pendiente") {
+                await revertirEstadoGestionAPendiente(id);
+                // Si canceló la confirmación, restaurar el desplegable al estado real
+                if ((item.estadoGestion || "Pendiente") === estadoActual) actualizarTablaReporte();
+                return;
+            }
+
+            if (!confirm("¿Cambiar el estado de este registro?\n\nDe: " + estadoActual + "\nA: " + nuevoEstado)) {
+                actualizarTablaReporte();
+                return;
+            }
+
+            item.estadoGestion = nuevoEstado;
+            localStorage.setItem('vencidos', JSON.stringify(globalVencidos));
+            actualizarTablaReporte();
+
+            await enviarActualizacionEstadoGestion(id, "Pendiente");
+            await enviarActualizacionEstadoGestion(id, nuevoEstado);
+        }
+
+        async function enviarActualizacionEstadoGestion(id, nuevoEstado) {
+            if (!WEB_APP_URL || WEB_APP_URL.includes("TU_URL")) return;
+
+            try {
+                await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "actualizarEstadoGestion", id: id, estadoGestion: nuevoEstado })
+                });
+            } catch (error) {
+                console.error("Error al sincronizar Estado de Gestión con Sheets:", error);
+            }
+        }
+
+        // Carga Masiva de Reporte Ventas (.xlsx) optimizada con IndexedDB
+        document.getElementById('ventas-file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            Swal.fire({
+                title: 'Procesando archivo masivo...',
+                text: 'Por favor espere mientras se cargan y estructuran los +240k registros de ventas.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    
+                    if(registros.length === 0) { throw new Error("El archivo está vacío."); }
+
+                    if (!('Sucursal' in registros[0]) || !('Producto' in registros[0]) || !('Cantidad' in registros[0])) {
+                        throw new Error("Estructura inválida. Las columnas deben ser exactamente: 'Sucursal', 'Producto' y 'Cantidad'.");
+                    }
+
+                    let mapaTemporal = {};
+
+                    registros.forEach(reg => {
+                        let prod = reg.Producto;
+                        let suc = reg.Sucursal;
+                        let cant = parseInt(reg.Cantidad);
+
+                        if (prod && suc && !isNaN(cant)) {
+                            prod = prod.toString().trim();
+                            suc = suc.toString().trim().toUpperCase();
+
+                            if (!mapaTemporal[prod]) { mapaTemporal[prod] = {}; }
+                            if (!mapaTemporal[prod][suc]) { mapaTemporal[prod][suc] = 0; }
+                            mapaTemporal[prod][suc] += cant;
+                        }
+                    });
+
+                    let mapaFinal = {};
+                    for (let prod in mapaTemporal) {
+                        let sucursalesArreglo = [];
+                        for (let suc in mapaTemporal[prod]) {
+                            sucursalesArreglo.push({ sucursal: suc, quantity: mapaTemporal[prod][suc] });
+                        }
+                        sucursalesArreglo.sort((a, b) => b.quantity - a.quantity);
+                        mapaFinal[prod] = sucursalesArreglo;
+                    }
+
+                    // Guardado seguro en IndexedDB
+                    await guardarEnCacheVentas(mapaFinal);
+                    mapaTop10Ventas = mapaFinal;
+
+                    Swal.close();
+                    actualizarMensajeEstadoVentas();
+                    actualizarTablaReporte();
+                    Swal.fire('¡Éxito!', 'El archivo masivo de ventas (+240k registros) fue procesado y guardado en la caché local sin errores.', 'success');
+                } catch (error) {
+                    Swal.close();
+                    console.error(error);
+                    Swal.fire('Error', error.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        document.getElementById('excel-file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const registros = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    
+                    if (registros.length === 0) { alert("Archivo vacío."); return; }
+
+                    let productosExtraidos = [];
+                    let nuevoMapaLabs = {};
+
+                    registros.forEach(row => {
+                        let nombreProd = row['Nombre'] ? row['Nombre'].toString().trim() : "";
+                        let labProd = row['Laboratorio'] ? row['Laboratorio'].toString().trim() : "";
+                        
+                        if (nombreProd !== "" && nombreProd.toLowerCase() !== 'nombre') {
+                            productosExtraidos.push(nombreProd);
+                            if (labProd !== "") {
+                                nuevoMapaLabs[nombreProd] = labProd;
+                            }
+                        }
+                    });
+
+                    if(productosExtraidos.length > 0) {
+                        listadoProductos = productosExtraidos;
+                        mapaProductosLaboratorios = nuevoMapaLabs;
+                        
+                        localStorage.setItem('catalogo_excel_vencidos', JSON.stringify(listadoProductos));
+                        localStorage.setItem('mapa_productos_laboratorios', JSON.stringify(mapaProductosLaboratorios));
+                        
+                        actualizarDatalistEnPantalla();
+                        alert(`¡Éxito! Se cargó el catálogo con ${productosExtraidos.length} productos vinculados.`);
+                    } else {
+                        alert("No se encontraron registros válidos. Verifique que las columnas se llamen 'Nombre' y 'Laboratorio'.");
+                    }
+                } catch (error) {
+                    alert("Error al leer el archivo de catálogo.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        document.getElementById('backup-file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                try {
+                    const datosRestaurados = JSON.parse(evt.target.result);
+                    if (datosRestaurados.vencidos && datosRestaurados.usuarios && datosRestaurados.catalogo) {
+                        if (confirm("¿Estás seguro de restaurar este backup?")) {
+                            localStorage.setItem('vencidos', JSON.stringify(datosRestaurados.vencidos));
+                            usuariosCache = datosRestaurados.usuarios;
+                            localStorage.setItem('catalogo_excel_vencidos', JSON.stringify(datosRestaurados.catalogo));
+                            if (datosRestaurados.mapaTop10Ventas) {
+                                await guardarEnCacheVentas(datosRestaurados.mapaTop10Ventas);
+                                mapaTop10Ventas = datosRestaurados.mapaTop10Ventas;
+                            }
+                            if (datosRestaurados.mapaProductosLaboratorios) {
+                                localStorage.setItem('mapa_productos_laboratorios', JSON.stringify(datosRestaurados.mapaProductosLaboratorios));
+                                mapaProductosLaboratorios = datosRestaurados.mapaProductosLaboratorios;
+                            }
+                            if (datosRestaurados.maestroPoliticas) {
+                                localStorage.setItem('maestro_politicas_vencidos', JSON.stringify(datosRestaurados.maestroPoliticas));
+                                maestroPoliticas = datosRestaurados.maestroPoliticas;
+                            }
+                            listadoProductos = datosRestaurados.catalogo;
+                            globalVencidos = datosRestaurados.vencidos;
+                            
+                            globalVencidos.forEach(item => {
+                                item.estadoRecuperacion = evaluarEstadoRecuperacion(item.proveedor, item.laboratorio);
+                            });
+
+                            actualizarTablaReporte(true);
+                            actualizarDatalistEnPantalla();
+                            actualizarSelectProveedores();
+                            actualizarTablaUsuarios();
+                            actualizarMensajeEstadoVentas();
+                            actualizarMensajeEstadoPoliticas();
+                            alert("¡Copia de seguridad restaurada con éxito total!");
+                        }
+                    }
+                } catch (err) {
+                    alert("Error al procesar el archivo.");
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        if (localStorage.getItem('catalogo_excel_vencidos')) {
+            listadoProductos = JSON.parse(localStorage.getItem('catalogo_excel_vencidos'));
+        }
+        if (localStorage.getItem('mapa_productos_laboratorios')) {
+            mapaProductosLaboratorios = JSON.parse(localStorage.getItem('mapa_productos_laboratorios'));
+        }
+        actualizarDatalistEnPantalla();
+
+        let usuariosCache = [];
+
+        globalVencidos = JSON.parse(localStorage.getItem('vencidos')) || [];
+        globalVencidos.forEach(item => {
+            item.estadoRecuperacion = evaluarEstadoRecuperacion(item.proveedor, item.laboratorio);
+        });
+
+        // Sistema de pestañas del panel principal. Cada botón/contenido tiene
+        // el mismo sufijo ('tab-registro', 'tab-carga', 'tab-resumen'); esta
+        // función simplemente activa el par correspondiente y desactiva el resto.
+        function cambiarTab(idTab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            const contenido = document.getElementById(idTab);
+            if (contenido) contenido.classList.add('active');
+
+            const boton = document.getElementById('tab-btn-' + idTab.replace('tab-', ''));
+            if (boton) boton.classList.add('active');
+
+            // El Resumen por FA solo se recalcula cuando el usuario realmente
+            // entra a esa pestaña, para no gastar ciclos en cada login/filtro.
+            if (idTab === 'tab-resumen') actualizarResumenPorFA();
+            if (idTab === 'tab-resumen-usuario') actualizarResumenPorUsuario();
+        }
+
+        async function login() {
+            const userIn = document.getElementById('login-user').value.trim();
+            const passIn = document.getElementById('login-pass').value;
+            const errorDiv = document.getElementById('login-error');
+            errorDiv.style.color = '';
+            errorDiv.innerText = 'Verificando...';
+
+            const usuarios = await cargarUsuariosDesdeSheets();
+
+            if (!usuarios || usuarios.length === 0) {
+                errorDiv.style.color = '#dc3545';
+                errorDiv.innerText = 'No se pudo conectar con la hoja de usuarios. Verifica tu conexión.';
+                return;
+            }
+
+            const cuenta = usuarios.find(u => u.usuario.toLowerCase() === userIn.toLowerCase() && String(u.contrasena) === passIn);
+
+            if (cuenta) {
+                usuarioActual = cuenta;
+                errorDiv.innerText = '';
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                document.getElementById('current-user-display').innerText = cuenta.usuario;
+                document.getElementById('current-role-display').innerText = etiquetaDeRol(cuenta.rol);
+
+                // Pestaña "Carga de Archivos": solo Admin y Super Usuario administran
+                // cargas masivas, catálogo, backups y usuarios.
+                document.getElementById('tab-btn-carga').style.display = esAdminOSuperior(cuenta) ? 'inline-block' : 'none';
+                // Pestaña "Resumen por FA": exclusiva de Super Usuario, igual que la
+                // tarjeta que contiene (comparar todas las sucursales entre sí).
+                document.getElementById('tab-btn-resumen').style.display = esSuperUsuario(cuenta) ? 'inline-block' : 'none';
+                // Pestaña "Resumen por Usuario": Admin (solo su FA) y Super Usuario (todas).
+                document.getElementById('tab-btn-resumen-usuario').style.display = esAdminOSuperior(cuenta) ? 'inline-block' : 'none';
+                // Toda sesión nueva arranca en la pestaña de Registro y Listado,
+                // que es la vista de trabajo diario para cualquier rol.
+                cambiarTab('tab-registro');
+
+                if (esAdminOSuperior(cuenta)) {
+                    document.getElementById('admin-panel').style.display = 'block';
+                    document.getElementById('admin-export-section').style.display = 'block';
+                    document.getElementById('admin-filters-container').style.display = 'flex';
+                    document.getElementById('tip-modal-msg').style.display = 'block';
+                    actualizarTablaUsuarios();
+                } else {
+                    document.getElementById('admin-panel').style.display = 'none';
+                    document.getElementById('admin-export-section').style.display = 'none';
+                    document.getElementById('admin-filters-container').style.display = 'none';
+                    document.getElementById('tip-modal-msg').style.display = 'none';
+                }
+
+                // El listado de usuarios (con sus roles y FA asignadas) solo lo
+                // puede ver un Super Usuario. Un Admin normal puede seguir
+                // creando cuentas nuevas desde el formulario de arriba, pero
+                // no puede ver ni administrar las cuentas ya existentes.
+                document.getElementById('lista-usuarios-container').style.display = esSuperUsuario(cuenta) ? 'block' : 'none';
+                document.getElementById('lista-usuarios-restringido-msg').style.display = (esAdminOSuperior(cuenta) && !esSuperUsuario(cuenta)) ? 'block' : 'none';
+
+                // La Carga Masiva de Próximos a Vencer la puede usar cualquier Admin+,
+                // pero solo el Super Usuario puede incluir registros de meses anteriores
+                // (el aviso se muestra a Admin normal para que sepa la limitación).
+                document.getElementById('carga-masiva-productos-container').style.display = esAdminOSuperior(cuenta) ? 'block' : 'none';
+                document.getElementById('carga-masiva-aviso-admin').style.display = (esAdminOSuperior(cuenta) && !esSuperUsuario(cuenta)) ? 'block' : 'none';
+
+                // Solo un Super Usuario puede crear nuevas cuentas de Super Usuario.
+                const optSuperAdmin = document.getElementById('opt-superadmin');
+                if (optSuperAdmin) optSuperAdmin.disabled = !esSuperUsuario(cuenta);
+                const optLeadDev = document.getElementById('opt-leaddeveloper');
+                if (optLeadDev) optLeadDev.disabled = !esLeadDeveloper(cuenta);
+                actualizarVisibilidadFANuevoUsuario(); // bloquea el campo FA si no es Super Usuario
+                document.getElementById('th-acciones-reporte').style.display = esSuperUsuario(cuenta) ? 'table-cell' : 'none';
+
+                // Admin y User quedan atados a su FA asignada: el campo se
+                // precarga y se bloquea para que no puedan registrar en otra.
+                const inputSucursal = document.getElementById('prod-sucursal');
+                if (!esSuperUsuario(cuenta)) {
+                    inputSucursal.value = cuenta.sucursal || '';
+                    inputSucursal.readOnly = true;
+                    inputSucursal.style.backgroundColor = '#eef2f7';
+                    inputSucursal.title = 'Solo puedes registrar en tu FA asignada: ' + (cuenta.sucursal || '(sin asignar)');
+                } else {
+                    inputSucursal.readOnly = false;
+                    inputSucursal.style.backgroundColor = '';
+                    inputSucursal.title = '';
+                }
+
+                if (!esSuperUsuario(cuenta) && !cuenta.sucursal) {
+                    alert('⚠️ Tu cuenta no tiene una FA asignada todavía. Contacta a un Super Usuario para que te asigne una antes de registrar productos.');
+                }
+
+                actualizarSelectProveedores();
+                actualizarTablaReporte(true);
+
+                cargarDesdeSheets();
+            } else {
+                errorDiv.style.color = '#dc3545';
+                errorDiv.innerText = 'Usuario o contraseña incorrectos.';
+            }
+        }
+
+        function logout() {
+            usuarioActual = null;
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('login-user').value = '';
+            document.getElementById('login-pass').value = '';
+            const inputSucursal = document.getElementById('prod-sucursal');
+            inputSucursal.readOnly = false;
+            inputSucursal.style.backgroundColor = '';
+            inputSucursal.value = '';
+        }
+
+        function guardarProducto(e) {
+            e.preventDefault();
+            try {
+                let sucursal = document.getElementById('prod-sucursal').value.trim().toUpperCase();
+                const producto = document.getElementById('prod-name').value.trim();
+                const laboratorio = document.getElementById('prod-lab').value.trim() || "Sin Politica";
+                const proveedor = document.getElementById('prod-prov').value; 
+                const cantidad = document.getElementById('prod-qty').value;
+                const fecha = document.getElementById('prod-date').value;
+
+                if (!usuarioActual) {
+                    alert("No hay una sesión activa. Por favor inicia sesión de nuevo.");
+                    return;
+                }
+
+                // Admin y User solo pueden registrar en su FA asignada.
+                if (!esSuperUsuario(usuarioActual)) {
+                    if (!usuarioActual.sucursal) {
+                        alert("⚠️ Tu cuenta no tiene una FA asignada. Contacta a un Super Usuario.");
+                        return;
+                    }
+                    sucursal = usuarioActual.sucursal.toUpperCase();
+                }
+
+                if (!sucursal || !producto || !cantidad || !fecha) {
+                    alert("Por favor completa todos los campos obligatorios (sucursal, producto, cantidad y fecha).");
+                    return;
+                }
+
+                const fechaObj = new Date(fecha + 'T00:00:00');
+                const nMes = fechaObj.toLocaleString('es-HN', { month: 'long' });
+                const mesFormateado = nMes.charAt(0).toUpperCase() + nMes.slice(1);
+                
+                const hoy = new Date();
+                const fechaRegistroTexto = hoy.toLocaleDateString('es-HN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                const nMesReg = hoy.toLocaleString('es-HN', { month: 'long' });
+
+                let estadoRecuperacion = evaluarEstadoRecuperacion(proveedor, laboratorio);
+
+                let nuevoRegistro = {
+                    id: Date.now(), sucursal, producto, laboratorio, proveedor, vineta: proveedor, cantidad, fecha,
+                    mes: mesFormateado, anio: fechaObj.getFullYear(), fechaRegistro: fechaRegistroTexto, 
+                    mesRegistro: nMesReg.charAt(0).toUpperCase() + nMesReg.slice(1), usuario: usuarioActual.usuario,
+                    estadoRecuperacion: estadoRecuperacion, estadoGestion: 'Pendiente'
+                };
+
+                globalVencidos.push(nuevoRegistro);
+
+                localStorage.setItem('vencidos', JSON.stringify(globalVencidos));
+                actualizarSelectProveedores();
+                actualizarTablaReporte(true);
+                document.getElementById('vencidos-form').reset();
+                document.getElementById('form-diagnostico-container').style.display = 'none';
+                actualizarBloqueoProveedor('');
+
+                enviarASheets(nuevoRegistro);
+            } catch (error) {
+                console.error("Error al guardar el producto:", error);
+                alert("Ocurrió un error al guardar el producto: " + error.message + "\n\nRevisa la consola (F12) para más detalles.");
+            }
+        }
+
+        // Nombres de mes tal cual los genera toLocaleString('es-HN', {month:'long'})
+        // capitalizados (ver carga masiva y guardarProducto), usados para
+        // ordenar los <select> de "Mes Venc." y "Mes Reg." en orden de
+        // calendario (Enero → Diciembre) en vez de orden alfabético.
+        const ORDEN_MESES_CALENDARIO = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        function ordenarMesesCalendario(meses) {
+            return meses.sort((a, b) => {
+                const ia = ORDEN_MESES_CALENDARIO.indexOf(a);
+                const ib = ORDEN_MESES_CALENDARIO.indexOf(b);
+                if (ia === -1 && ib === -1) return String(a).localeCompare(String(b));
+                if (ia === -1) return 1;  // "Indefinido" u otros valores no reconocidos van al final
+                if (ib === -1) return -1;
+                return ia - ib;
+            });
+        }
+
+        function poblarSelectoresFiltros() {
+            const selectSucursal = document.getElementById('filter-sucursal');
+            const selectMesVenc = document.getElementById('filter-mes-venc');
+            const selectMesReg = document.getElementById('filter-mes-registro');
+            const selectAnioVenc = document.getElementById('filter-anio-venc');
+            
+            if (!selectSucursal || !selectMesVenc || !selectMesReg) return;
+            
+            const valorSucPrevio = selectSucursal.value;
+            const valorAnioVencPrevio = selectAnioVenc ? selectAnioVenc.value : '';
+            const valorMesVencPrevio = selectMesVenc.value;
+            const valorMesRegPrevio = selectMesReg.value;
+            
+            selectSucursal.innerHTML = '<option value="">-- Todas --</option>';
+            selectMesVenc.innerHTML = '<option value="">-- Todos --</option>';
+            selectMesReg.innerHTML = '<option value="">-- Todos --</option>';
+            
+            if (selectAnioVenc) selectAnioVenc.innerHTML = '<option value="">-- Todos --</option>';
+            let sucursalesUnicas = new Set(), mesesVencUnicos = new Set(), mesesRegUnicos = new Set(), aniosVencUnicos = new Set();
+            
+            obtenerVencidosVisibles().forEach(item => {
+                if (item.sucursal) sucursalesUnicas.add(String(item.sucursal).toUpperCase());
+                if (item.mes) mesesVencUnicos.add(item.mes);
+                if (item.anio && item.anio !== 'Indefinido') aniosVencUnicos.add(String(item.anio));
+                if (item.mesRegistro) mesesRegUnicos.add(item.mesRegistro);
+            });
+            if (selectAnioVenc) {
+                Array.from(aniosVencUnicos).sort().forEach(a => {
+                    const opt = document.createElement('option'); opt.value = a; opt.innerText = a; selectAnioVenc.appendChild(opt);
+                });
+            }
+            
+            Array.from(sucursalesUnicas).sort().forEach(suc => {
+                const opt = document.createElement('option'); opt.value = suc; opt.innerText = suc; selectSucursal.appendChild(opt);
+            });
+            ordenarMesesCalendario(Array.from(mesesVencUnicos)).forEach(mes => {
+                const opt = document.createElement('option'); opt.value = mes; opt.innerText = mes; selectMesVenc.appendChild(opt);
+            });
+            ordenarMesesCalendario(Array.from(mesesRegUnicos)).forEach(mes => {
+                const opt = document.createElement('option'); opt.value = mes; opt.innerText = mes; selectMesReg.appendChild(opt);
+            });
+            
+            selectSucursal.value = valorSucPrevio;
+            selectMesVenc.value = valorMesVencPrevio;
+            if (selectAnioVenc) selectAnioVenc.value = valorAnioVencPrevio;
+            selectMesReg.value = valorMesRegPrevio;
+        }
+
+        // El check "Mostrar registros de meses anteriores" también debe
+        // refrescar los <select> de filtros por si el conjunto de meses
+        // disponibles para elegir cambia según lo que hay visible.
+        function toggleMostrarMesesAnteriores() {
+            const chk = document.getElementById('chk-mostrar-meses-anteriores');
+            mostrarMesesAnteriores = !!(chk && chk.checked);
+            actualizarTablaReporte();
+        }
+
+        function toggleRecuperablesSalientes() {
+            filtroRecuperablesSalientes = !filtroRecuperablesSalientes;
+            const btn = document.getElementById('btn-recuperables-salientes');
+            if (btn) {
+                btn.classList.toggle('activo', filtroRecuperablesSalientes);
+                btn.innerHTML = filtroRecuperablesSalientes
+                    ? '🟢 Recuperables Salientes (Activo) ✕'
+                    : '🟢 Recuperables Salientes';
+            }
+            actualizarTablaReporte();
+        }
+
+        // recalcularOpciones=true SOLO cuando cambió el conjunto de datos
+        // (login, sincronizar, carga masiva, alta/baja de registro, restore).
+        // En cambios de filtro/búsqueda/estado de un solo item no hace falta
+        // reconstruir los <select> de Sucursal/Mes Venc./Mes Reg., porque esas
+        // opciones dependen del set completo de datos, no de qué filtro está
+        // activo. Esto evita un recorrido completo extra en cada tecla o clic.
+        function actualizarTablaReporte(recalcularOpciones = false) {
+            let listaVisualizacion = obtenerVencidosVisibles();
+            if (usuarioActual && esAdminOSuperior(usuarioActual)) {
+                listaVisualizacion = filtrarLista(listaVisualizacion);
+            }
+
+            // Filtro del Dashboard de Riesgo (venta en otras FA), aplica a cualquier rol
+            if (filtroSoloRiesgoOtraFA) {
+                listaVisualizacion = listaVisualizacion.filter(tieneVentaEnOtraFA);
+            }
+            if (filtroGestionAgrupadoRiesgo === 'pendiente') {
+                listaVisualizacion = listaVisualizacion.filter(item => (item.estadoGestion || 'Pendiente') === 'Pendiente');
+            } else if (filtroGestionAgrupadoRiesgo === 'trabajado') {
+                listaVisualizacion = listaVisualizacion.filter(item => (item.estadoGestion || 'Pendiente') !== 'Pendiente');
+            }
+
+            // Por defecto se ocultan los registros cuyo mes de vencimiento
+            // tiene 2 o más meses de atraso respecto a hoy (mismo criterio
+            // de "mes actual + mes inmediato anterior" que ya usa el bloqueo
+            // de Estado de Gestión). El check "Mostrar registros de meses
+            // anteriores" desactiva este ocultamiento; y si el usuario elige
+            // un mes puntual en el filtro "Mes Venc.", esa elección siempre
+            // se respeta sin importar el check.
+            const selectMesVencActivo = document.getElementById('filter-mes-venc');
+            const selectAnioVencActivo = document.getElementById('filter-anio-venc');
+            const hayMesVencEspecificoSeleccionado = !!((selectMesVencActivo && selectMesVencActivo.value !== '') || (selectAnioVencActivo && selectAnioVencActivo.value !== ''));
+            if (!mostrarMesesAnteriores && !hayMesVencEspecificoSeleccionado) {
+                const hoy = new Date();
+                listaVisualizacion = listaVisualizacion.filter(item => {
+                    const diff = diferenciaMesesCalendario(item.fecha, hoy);
+                    return diff === null || diff >= -1;
+                });
+            }
+
+            // "Recuperables Salientes": el producto es Recuperable según la política
+            // (Viñeta+Laboratorio) y está en el mes límite para enviarlo: la
+            // política exige enviarlo N meses antes de vencer (el "N" sale de
+            // sus Observaciones, ej. "5 meses"). Los que ya tienen MENOS meses
+            // que el plazo ya no se pueden enviar: se excluyen de esta lista y
+            // se avisan aparte (aviso bajo el botón + etiqueta en la fila).
+            // Ej: política 5 meses → vence en 5 meses = sale; vence en 3 meses
+            // = fuera de plazo, no sale.
+            const elAvisoPlazo = document.getElementById('aviso-recuperables-fuera-plazo');
+            if (filtroRecuperablesSalientes) {
+                const fueraDePlazo = listaVisualizacion.filter(item => {
+                    if ((item.estadoGestion || 'Pendiente') !== 'Pendiente') return false;
+                    const plazo = estadoPlazoPolitica(item);
+                    return plazo && plazo.fueraDePlazo;
+                }).length;
+                if (elAvisoPlazo) {
+                    if (fueraDePlazo > 0) {
+                        elAvisoPlazo.style.display = 'block';
+                        elAvisoPlazo.innerHTML = `⛔ <strong>${fueraDePlazo}</strong> producto(s) Recuperable(s) pendiente(s) ya pasaron el plazo de su política y <strong>ya no se pueden enviar</strong> (no aparecen en esta lista). Quita el filtro para verlos con la etiqueta "Fuera de plazo".`;
+                    } else {
+                        elAvisoPlazo.style.display = 'none';
+                    }
+                }
+                listaVisualizacion = listaVisualizacion.filter(item => {
+                    const plazo = estadoPlazoPolitica(item);
+                    if (!plazo) return false;
+                    return !plazo.fueraDePlazo && plazo.restantes <= plazo.meses;
+                });
+            } else if (elAvisoPlazo) {
+                elAvisoPlazo.style.display = 'none';
+            }
+
+            // Filtro por Prioridad de Irrecuperables a trabajar (Alta/Baja).
+            // Los Recuperables no tienen prioridad (calcularPrioridadTrabajo
+            // devuelve null) y quedan excluidos automáticamente cuando este
+            // filtro está activo.
+            if (filtroPrioridadActivo !== '') {
+                listaVisualizacion = listaVisualizacion.filter(item =>
+                    calcularPrioridadTrabajo(item, obtenerVentaEnSucursal(item)) === filtroPrioridadActivo
+                );
+            }
+
+            // Buscador de producto (aplica a cualquier rol)
+            const inputBusqueda = document.getElementById('buscador-producto');
+            const textoBusqueda = inputBusqueda ? inputBusqueda.value.trim().toLowerCase() : '';
+            if (textoBusqueda !== '') {
+                listaVisualizacion = listaVisualizacion.filter(item =>
+                    String(item.producto || '').toLowerCase().includes(textoBusqueda)
+                );
+            }
+
+            actualizarDashboardRiesgo();
+
+            // Conteo de prioridades dentro de lo que quedó visible, para que
+            // se sepa de un vistazo cuántos Irrecuperables de cada nivel hay
+            // que trabajar (independientemente de si el filtro de prioridad
+            // está o no activo).
+            const elConteoPrioridad = document.getElementById('prioridad-conteo');
+            if (elConteoPrioridad) {
+                let cAlta = 0, cBaja = 0;
+                listaVisualizacion.forEach(item => {
+                    const p = calcularPrioridadTrabajo(item, obtenerVentaEnSucursal(item));
+                    if (p === 'Alta') cAlta++;
+                    else if (p === 'Baja') cBaja++;
+                });
+                elConteoPrioridad.innerText = `🔴 ${cAlta} Alta · 🟢 ${cBaja} Baja`;
+            }
+
+            // Los <select> de Sucursal/Mes Venc./Mes Reg. dependen del conjunto
+            // completo de datos, no del filtro activo: solo se reconstruyen
+            // cuando el llamador avisa que los datos cambiaron.
+            if (recalcularOpciones) poblarSelectoresFiltros();
+
+            const tbody = document.querySelector('#reporte-table tbody');
+            listaVisualizacion.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+            const esSuper = esSuperUsuario(usuarioActual);
+            const esAdminSup = esAdminOSuperior(usuarioActual);
+
+            // Construimos todas las filas como un único string y las inyectamos
+            // de una sola vez con innerHTML. Antes cada fila se creaba con
+            // document.createElement + tbody.appendChild dentro del forEach,
+            // lo que fuerza un reflow del navegador por cada registro; con
+            // reportes de cientos/miles de filas eso es lo que provocaba el
+            // "congelamiento" al ingresar y al sincronizar. Un solo innerHTML
+            // al final es muchísimo más rápido.
+            const filasHTML = [];
+
+            listaVisualizacion.forEach(item => {
+              try {
+                let celdaAcciones = esSuper ? `<td>${botonEliminarHTML(item.id)}</td>` : '';
+                const productoEscapado = String(item.producto || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                let productoHTML = esAdminSup ? `<strong class="clickable-product" onclick="verTop10Ventas('${productoEscapado}')">${item.producto}</strong>` : `<strong>${item.producto}</strong>`;
+
+                let ventaHistoricaSucursal = obtenerVentaEnSucursal(item);
+
+                let laboratorioDisplay = item.laboratorio || "Sin Politica";
+                let proveedorDisplay = item.proveedor || "Sin Politica";
+                
+                let estRec = evaluarEstadoRecuperacion(proveedorDisplay, laboratorioDisplay);
+                let politicaInfo = obtenerPolitica(proveedorDisplay, laboratorioDisplay);
+                let tooltipPolitica = politicaInfo ? ' title="' + politicaInfo.observaciones.replace(/"/g,'&quot;') + '"' : '';
+                let badgeEstadoClase = estRec === "Recuperable" ? "badge-recuperable" : "badge-irrecuperable";
+
+                let prioridadItem = calcularPrioridadTrabajo(item, ventaHistoricaSucursal);
+                let prioInfo = infoPrioridad(prioridadItem);
+                let prioridadHTML = `<span class="badge ${prioInfo.clase}" title="Alta: la venta no llega al 400% de lo que vence · Baja: la venta es 400% (4×) o más de lo que vence.">${prioInfo.icono} ${prioridadItem ? prioridadItem.toUpperCase() : 'N/A'}</span>`;
+
+                let actualGestion = item.estadoGestion || "Pendiente";
+                let colorFondoSelect = colorEstadoGestion(actualGestion);
+
+                let selectorGestionHTML;
+                if (actualGestion === 'Pendiente') {
+                    const opcionesGestion = ESTADOS_GESTION.map(e =>
+                        `<option value="${e.valor}">${e.icono} ${e.valor}</option>`
+                    ).join('');
+                    selectorGestionHTML = `
+                        <select class="select-interactivo" style="background-color: ${colorFondoSelect};" onchange="actualizarEstadoGestionInteractiva(${item.id}, this.value); actualizarTablaReporte();">
+                            <option value="Pendiente" selected>⏳ Pendiente</option>
+                            ${opcionesGestion}
+                        </select>
+                    `;
+                } else if (usuarioActual && esSuperUsuario(usuarioActual)) {
+                    // SuperAdmin: el MISMO desplegable de siempre, con el estado actual
+                    // seleccionado. Elegir "Pendiente" devuelve el registro; elegir otro
+                    // estado lo cambia directamente (pide confirmación en ambos casos).
+                    const opcionesSuper = [{ valor: "Pendiente", icono: "⏳" }, ...ESTADOS_GESTION].map(e =>
+                        `<option value="${e.valor}" ${e.valor === actualGestion ? 'selected' : ''}>${e.icono} ${e.valor}</option>`
+                    ).join('');
+                    selectorGestionHTML = `
+                        <select class="select-interactivo" style="background-color: ${colorFondoSelect};" title="Super Usuario: puedes devolver a Pendiente o cambiar el estado" onchange="cambiarEstadoGestionSuperUsuario(${item.id}, this.value)">
+                            ${opcionesSuper}
+                        </select>
+                    `;
+                } else {
+                    selectorGestionHTML = `
+                        <span class="badge" style="background-color: ${colorFondoSelect}; cursor: not-allowed;" title="El Estado de Gestión ya fue definido y no puede modificarse">
+                            ${iconoEstadoGestion(actualGestion)} ${actualGestion} 🔒
+                        </span>
+                    `;
+                }
+
+                filasHTML.push(`
+                <tr>
+                    <td><span class="badge badge-sucursal">${item.sucursal}</span></td>
+                    <td>${productoHTML}</td>
+                    <td><span class="badge" style="background-color: #eaf2f8; color: #2980b9; border: 1px solid #a9cce3; font-weight:bold;">${laboratorioDisplay}</span></td>
+                    <td><span class="badge" style="background-color: #f1f3f5; color: #495057; border: 1px solid #ced4da; font-weight:bold;">${proveedorDisplay}</span></td>
+                    <td style="font-weight: bold; text-align: center;">${parseInt(item.cantidad).toLocaleString('es-HN')}</td>
+                    <td><span class="badge ${badgeEstadoClase}" ${tooltipPolitica} style="cursor:${politicaInfo?'help':'default'};">${estRec.toUpperCase()}${politicaInfo ? ' ℹ️' : ''}</span>${(() => {
+                        if ((item.estadoGestion || 'Pendiente') !== 'Pendiente') return '';
+                        const plazo = estadoPlazoPolitica(item);
+                        if (!plazo || !plazo.fueraDePlazo) return '';
+                        const txt = plazo.restantes < 0
+                            ? 'Ya venció'
+                            : `Le quedan ${plazo.restantes} mes(es)`;
+                        return `<br><span class="badge" style="background:#fff3cd; color:#856404; border:1px solid #ffe69c; font-size:0.75em; margin-top:4px; cursor:help;" title="La política exige enviarlo ${plazo.meses} mes(es) antes de vencer. ${txt}: ya no se puede enviar.">⛔ Fuera de plazo</span>`;
+                    })()}</td>
+                    <td><span class="badge badge-venta">${ventaHistoricaSucursal.toLocaleString('es-HN')}</span></td>
+                    <td style="text-align: center;">${prioridadHTML}</td>
+                    <td style="text-align: center;">${selectorGestionHTML}</td>
+                    <td>${(() => {
+                        const p = String(item.fecha || '').trim().split('-');
+                        const ok = p.length === 3 && p.every(x => x !== '' && !isNaN(parseInt(x)));
+                        const txt = ok ? `${p[2].padStart(2,'0')}/${p[1].padStart(2,'0')}/${p[0]}` : `${item.mes || ''} ${item.anio || ''}`.trim();
+                        return `<span class="badge badge-fecha-venc" title="${item.mes || ''} ${item.anio || ''}">📅 ${txt}</span>`;
+                    })()}</td>
+                    <td><span class="badge" style="background-color: #ede7f6; color: #4527a0; border: 1px solid #d1c4e9;">🗓️ ${item.mesRegistro || 'Indefinido'}</span></td>
+                    <td><span class="badge" style="background-color: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6;">👤 ${item.usuario}</span></td>
+                    <td><span class="badge" style="background-color: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9;">📅 ${item.fechaRegistro}</span></td>
+                    ${celdaAcciones}
+                </tr>`);
+              } catch (error) {
+                console.error("No se pudo mostrar un registro (datos corruptos):", item, error);
+                // Un registro dañado no se puede dibujar normal, pero el Super
+                // Usuario debe poder eliminarlo siempre: se muestra una fila
+                // mínima con su botón de eliminar.
+                if (esSuper) {
+                    const idDanado = item && item.id != null ? item.id : '';
+                    const refDanado = escaparAtributoHTML(
+                        [item && item.sucursal, item && item.producto].filter(Boolean).join(' · ') || 'sin datos legibles'
+                    );
+                    filasHTML.push(`<tr style="background:#fff3cd;"><td colspan="14" style="color:#856404; font-weight:bold;">⚠️ Registro dañado (ID: ${escaparAtributoHTML(idDanado)}) — ${refDanado}. No se puede mostrar completo; puedes eliminarlo.</td><td>${botonEliminarHTML(idDanado)}</td></tr>`);
+                }
+              }
+            });
+
+            tbody.innerHTML = filasHTML.join('');
+        }
+
+        function verTop10Ventas(nombreProducto) {
+            if (usuarioActual && !esAdminOSuperior(usuarioActual)) return;
+            document.getElementById('modal-producto-titulo').innerText = nombreProducto;
+            const subText = document.getElementById('modal-producto-sub');
+            const tbody = document.querySelector('#modal-top10-table tbody');
+            tbody.innerHTML = '';
+
+            if (mapaTop10Ventas[nombreProducto] && mapaTop10Ventas[nombreProducto].length > 0) {
+                subText.innerText = "Sucursales ordenadas por rotación comercial.";
+                mapaTop10Ventas[nombreProducto].slice(0, 10).forEach((item, idx) => {
+                    const promedio3Meses = Math.round(item.quantity / 3);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td style="text-align: center; font-weight: bold;">#${idx + 1}</td><td><span class="badge badge-sucursal">${item.sucursal}</span></td><td style="text-align: right; font-weight: bold;">${item.quantity.toLocaleString('es-HN')}</td><td style="text-align: right;">${promedio3Meses.toLocaleString('es-HN')}</td>`;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                subText.innerText = "⚠️ No hay historial de venta masiva cargado.";
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#999; font-style:italic; padding:20px;">Suba el archivo Ventas en el panel Admin.</td></tr>`;
+            }
+            document.getElementById('top10-modal').style.display = 'block';
+        }
+
+        function cerrarModal() { document.getElementById('top10-modal').style.display = 'none'; }
+
+        // Escapa texto para usarlo dentro de un atributo HTML entre comillas dobles.
+        function escaparAtributoHTML(valor) {
+            return String(valor == null ? '' : valor)
+                .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // Botón "Eliminar" de una fila. El id viaja como TEXTO en data-id, así
+        // funciona sin importar si el id es numérico o texto (antes un id con
+        // letras rompía el onclick y el botón no hacía nada).
+        function botonEliminarHTML(id) {
+            return `<button class="btn-delete-item" data-id="${escaparAtributoHTML(id)}" onclick="eliminarRegistroVencido(this.dataset.id)">Eliminar</button>`;
+        }
+
+        // ── Eliminaciones pendientes de confirmar en el Sheet ──
+        // El borrado en Sheets se envía sin poder confirmar la respuesta
+        // (no-cors). Se guarda el id aquí hasta comprobar en una sincronización
+        // que ya no existe en el Sheet; mientras tanto el registro se mantiene
+        // oculto y se reintenta el borrado, para que no "reviva" al sincronizar.
+        const CLAVE_ELIMINADOS_PENDIENTES = 'vencidos_eliminados_pendientes';
+        function leerEliminadosPendientes() {
+            try { return JSON.parse(localStorage.getItem(CLAVE_ELIMINADOS_PENDIENTES) || '[]'); }
+            catch (e) { return []; }
+        }
+        function guardarEliminadosPendientes(lista) {
+            try { localStorage.setItem(CLAVE_ELIMINADOS_PENDIENTES, JSON.stringify(lista)); }
+            catch (e) { console.error('No se pudo guardar la lista de eliminaciones pendientes:', e); }
+        }
+        function aplicarEliminacionesPendientes(registrosSheet) {
+            const pendientes = leerEliminadosPendientes();
+            if (!pendientes.length) return registrosSheet;
+            const idsEnSheet = new Set(registrosSheet.map(r => String(r.id)));
+            // Los que ya no están en el Sheet quedaron confirmados como eliminados.
+            const siguenEnSheet = pendientes.filter(id => idsEnSheet.has(String(id)));
+            guardarEliminadosPendientes(siguenEnSheet);
+            if (esSuperUsuario(usuarioActual)) siguenEnSheet.forEach(id => enviarEliminacionASheets(id));
+            const ocultar = new Set(siguenEnSheet.map(String));
+            return registrosSheet.filter(r => !ocultar.has(String(r.id)));
+        }
+
+        function eliminarRegistroVencido(id) {
+            if (!esSuperUsuario(usuarioActual)) {
+                alert("⚠️ Solo un Super Usuario puede eliminar registros.");
+                return;
+            }
+            const idTxt = String(id);
+            const registro = globalVencidos.find(item => String(item.id) === idTxt);
+            const detalle = registro && registro.producto ? `\n\n${registro.producto}${registro.sucursal ? ' (' + registro.sucursal + ')' : ''}` : '';
+            if (confirm("¿Eliminar este producto?" + detalle)) {
+                const idOriginal = registro ? registro.id : id;
+                globalVencidos = globalVencidos.filter(item => String(item.id) !== idTxt);
+                try { localStorage.setItem('vencidos', JSON.stringify(globalVencidos)); }
+                catch (e) { console.error('No se pudo actualizar el almacenamiento local:', e); }
+
+                const pendientes = leerEliminadosPendientes();
+                if (!pendientes.some(p => String(p) === idTxt)) pendientes.push(idOriginal);
+                guardarEliminadosPendientes(pendientes);
+
+                actualizarTablaReporte(true);
+                enviarEliminacionASheets(idOriginal);
+            }
+        }
+
+        function exportarAReporteExcelAvanzado() {
+            if (usuarioActual && !esAdminOSuperior(usuarioActual)) return;
+            let listaVencidos = obtenerVencidosVisibles();
+            listaVencidos = filtrarLista(listaVencidos);
+
+            if (listaVencidos.length === 0) { alert("No hay registros para exportar."); return; }
+
+            let xmlFile = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><style>table { border-collapse: collapse; font-family: 'Segoe UI', sans-serif; } th { background-color: #0056b3; color: #ffffff; font-weight: bold; text-align: center; border: 1px solid #dee2e6; height: 30px; } td { border: 1px solid #dee2e6; height: 22px; vertical-align: middle; } .fila-padre { background-color: #f2f4f7; font-weight: bold; } .top3 { background-color: #e2f0d9; italic: true; } .center { text-align: center; } .right { text-align: right; } </style></head><body><table><thead><tr><th>Sucursal Origen</th><th style="width:320px;">Producto / Medicamento</th><th>Laboratorio</th><th>Viñeta</th><th>Cant. Vencida</th><th>Estado Política</th><th>Prioridad</th><th>Venta Histórica Origen</th><th>Estado Gestión</th><th>Mes Venc.</th><th>Año Venc.</th><th>Fecha Vencimiento</th><th>Mes Registro</th><th>Registrado El</th><th style="width:300px;">Info Comercial / Destino Recomendado</th><th>Venta Histórica Destino</th></tr></thead><tbody>`;
+
+            listaVencidos.forEach(item => {
+                let labExp = item.laboratorio || "Sin Politica";
+                let provExp = item.proveedor || "Sin Politica";
+                let estRec = evaluarEstadoRecuperacion(provExp, labExp);
+                let estGestionTxt = item.estadoGestion || "Pendiente";
+
+                let ventaHistoricaSucursal = obtenerVentaEnSucursal(item);
+                let prioridadTxt = calcularPrioridadTrabajo(item, ventaHistoricaSucursal) || "N/A";
+
+                xmlFile += `<tr class="fila-padre"><td class="center">${item.sucursal}</td><td>${item.producto}</td><td>${labExp}</td><td>${provExp}</td><td class="center">${parseInt(item.cantidad)}</td><td class="center">${estRec.toUpperCase()}</td><td class="center">${prioridadTxt.toUpperCase()}</td><td class="center">${ventaHistoricaSucursal}</td><td class="center">${estGestionTxt}</td><td class="center">${item.mes}</td><td class="center">${item.anio}</td><td class="center">${item.fecha}</td><td class="center">${item.mesRegistro || ''}</td><td class="center">${item.fechaRegistro}</td><td></td><td></td></tr>`;
+                let sucursalesTop = mapaTop10Ventas[item.producto] ? mapaTop10Ventas[item.producto].slice(0, 10) : [];
+                if (sucursalesTop.length > 0) {
+                    sucursalesTop.forEach((farmacia, idx) => {
+                        let esTop3Clase = idx < 3 ? 'top3' : '';
+                        xmlFile += `<tr style="mso-outline-level:1; display:none;"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="${esTop3Clase}" style="color:#555; padding-left: 15px;">🏆 Top #${idx+1} Vendedora: Sucursal <strong>${farmacia.sucursal}</strong></td><td class="${esTop3Clase} right" style="color:#333;">${parseInt(farmacia.quantity)}</td></tr>`;
+                    });
+                } else {
+                    xmlFile += `<tr style="mso-outline-level:1; display:none;"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td style="color:#999; font-style:italic; padding-left: 15px;">No hay historial de ventas masivas cargado.</td><td></td></tr>`;
+                }
+            });
+
+            xmlFile += `</tbody></table></body></html>`;
+            const blob = new Blob([xmlFile], { type: "application/vnd.ms-excel;charset=utf-8" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob); link.download = "Plan_Rotacion_Comercial_Agrupado.xls";
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        function generarBackupSistema() {
+            // Contiene los vencidos de TODAS las FA, así que queda reservado
+            // al Super Usuario (Admin/User solo deben ver/exportar su propia FA).
+            if (!esSuperUsuario(usuarioActual)) {
+                alert("⚠️ Solo un Super Usuario puede generar el backup completo del sistema.");
+                return;
+            }
+            const estructura = { vencidos: globalVencidos, usuarios: usuariosCache, catalogo: listadoProductos, mapaTop10Ventas, mapaProductosLaboratorios, maestroPoliticas };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(estructura, null, 2));
+            const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", `Backup_Sistema_Vencidos.json`); a.click();
+        }
+
+        async function crearUsuario(e) {
+            e.preventDefault();
+            const nuevoUser = document.getElementById('new-username').value.trim();
+            const nuevaPass = document.getElementById('new-password').value;
+            const nuevoRol = document.getElementById('new-role').value;
+            const nuevaFA = document.getElementById('new-fa').value.trim().toUpperCase();
+
+            if (!nuevoUser || !nuevaPass) return alert('Usuario y contraseña son obligatorios.');
+            if (usuariosCache.some(u => u.usuario.toLowerCase() === nuevoUser.toLowerCase())) { return alert('El nombre de usuario ya existe.'); }
+            if (!rolSinFA(nuevoRol) && !nuevaFA) { return alert('Debe asignar una FA al usuario (obligatoria para Admin y Usuario Normal).'); }
+            if (nuevoRol === 'SuperAdmin' && !esSuperUsuario(usuarioActual)) { return alert('Solo un Super Usuario puede crear cuentas de Super Usuario.'); }
+            if (nuevoRol === 'LeadDeveloper' && !esLeadDeveloper(usuarioActual)) { return alert('Solo un Lead Developer puede crear cuentas de Lead Developer.'); }
+            // Solo un Super Usuario puede crear usuarios de otra FA
+            if (!esSuperUsuario(usuarioActual)) {
+                const miFA = ((usuarioActual && usuarioActual.sucursal) || '').trim().toUpperCase();
+                if (!miFA) { return alert('Tu cuenta no tiene una FA asignada, por lo que no puedes crear usuarios.'); }
+                if (nuevaFA !== miFA) { return alert('Solo un Super Usuario puede crear usuarios de otra FA. Tu usuario solo puede crear cuentas en la FA ' + miFA + '.'); }
+            }
+
+            document.getElementById('user-form').reset();
+            actualizarVisibilidadFANuevoUsuario();
+            await enviarAccionUsuarioASheets({ action: "crearUsuario", usuario: nuevoUser, contrasena: nuevaPass, rol: nuevoRol, sucursal: nuevaFA, solicitante: usuarioActual ? usuarioActual.usuario : "" });
+        }
+
+        function actualizarTablaUsuarios() {
+            const tbody = document.querySelector('#users-table tbody');
+            tbody.innerHTML = '';
+
+            usuariosCache.forEach((u, index) => {
+                const tr = document.createElement('tr');
+                let claseBotonRol = u.rol === 'LeadDeveloper' ? 'btn-role-lead' : (u.rol === 'SuperAdmin' ? 'btn-role-super' : (u.rol === 'Admin' ? 'btn-role-admin' : 'btn-role-user'));
+                let etiquetaRol = etiquetaDeRol(u.rol);
+                let faDisplay = u.sucursal ? `<span class="badge badge-sucursal">${u.sucursal}</span>` : (rolSinFA(u.rol) ? '<span style="color:#6c757d; font-size:0.85em;">Todas</span>' : '<span style="color:#dc3545; font-size:0.85em;">Sin asignar</span>');
+                tr.innerHTML = `<td><strong>${u.usuario}</strong></td><td style="text-align: center;"><button class="btn-role-toggle ${claseBotonRol}" onclick="toggleAdminRole(${index})">${etiquetaRol}</button></td><td style="text-align: center; cursor:pointer;" onclick="cambiarFAUsuario(${index})" title="Clic para cambiar la FA asignada">${faDisplay}</td><td style="text-align: right;"><button class="btn-action btn-password" onclick="cambiarClaveUsuario(${index})">🔑 Clave</button> <button class="btn-delete-item" onclick="eliminarUsuario(${index})">🗑️</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function toggleAdminRole(index) {
+            const usuario = usuariosCache[index];
+            if (usuarioActual && usuarioActual.usuario.toLowerCase() === usuario.usuario.toLowerCase()) {
+                alert("⚠️ No puedes cambiar tu propio rol estando en sesión."); return;
+            }
+            // Un Lead Developer solo puede ser modificado por otro Lead Developer.
+            if (usuario.rol === 'LeadDeveloper' && !esLeadDeveloper(usuarioActual)) {
+                alert('⛔ Solo un Lead Developer puede modificar la cuenta de otro Lead Developer.');
+                return;
+            }
+            // Ciclo: User → Admin → Super Usuario → Lead Developer (solo si quien cambia es LD) → User
+            let nuevoRol;
+            if (usuario.rol === 'User') nuevoRol = 'Admin';
+            else if (usuario.rol === 'Admin') nuevoRol = 'SuperAdmin';
+            else if (usuario.rol === 'SuperAdmin') nuevoRol = esLeadDeveloper(usuarioActual) ? 'LeadDeveloper' : 'User';
+            else nuevoRol = 'User';
+
+            if (nuevoRol === 'SuperAdmin' && !esSuperUsuario(usuarioActual)) {
+                alert('Solo un Super Usuario puede ascender a otro usuario a Super Usuario.');
+                return;
+            }
+
+            await enviarAccionUsuarioASheets({ action: "actualizarRolUsuario", usuario: usuario.usuario, rol: nuevoRol, solicitante: usuarioActual ? usuarioActual.usuario : "" });
+            actualizarTablaReporte();
+        }
+
+        // Controla la visibilidad de la tabla de usuarios registrados: viene
+        // oculta por defecto para no exponer la lista de cuentas/roles/FA
+        // apenas se entra al panel; el admin la despliega solo si la necesita.
+        function toggleTablaUsuarios() {
+            const wrapper = document.getElementById('users-table-wrapper');
+            const boton = document.getElementById('btn-toggle-usuarios');
+            const oculta = wrapper.style.display === 'none';
+            wrapper.style.display = oculta ? 'block' : 'none';
+            boton.innerText = oculta ? '🙈 Ocultar Usuarios' : '👁️ Mostrar Usuarios';
+        }
+
+        // Cambio de contraseña de la propia cuenta: disponible para cualquier
+        // usuario logueado (User, Admin o Super Usuario), a diferencia de
+        // cambiarClaveUsuario() que es exclusiva del panel de administración
+        // para restablecer la clave de OTRO usuario.
+        async function cambiarMiContrasena() {
+            if (!usuarioActual) return;
+
+            const { value: actual } = await Swal.fire({
+                title: 'Cambiar mi contraseña',
+                input: 'password',
+                inputLabel: 'Contraseña actual',
+                inputPlaceholder: 'Ingresa tu contraseña actual',
+                showCancelButton: true,
+                confirmButtonText: 'Continuar',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (v) => !v ? 'Este campo es obligatorio' : undefined
+            });
+            if (actual === undefined) return; // Canceló
+
+            if (String(actual) !== String(usuarioActual.contrasena)) {
+                Swal.fire('Error', 'La contraseña actual no es correcta.', 'error');
+                return;
+            }
+
+            const { value: nueva } = await Swal.fire({
+                title: 'Nueva contraseña',
+                input: 'password',
+                inputLabel: 'Escribe tu nueva contraseña',
+                inputPlaceholder: 'Nueva contraseña',
+                showCancelButton: true,
+                confirmButtonText: 'Continuar',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (v) => !v || v.trim() === '' ? 'Este campo es obligatorio' : undefined
+            });
+            if (nueva === undefined) return;
+
+            const { value: confirmacion } = await Swal.fire({
+                title: 'Confirma tu nueva contraseña',
+                input: 'password',
+                inputLabel: 'Repite la nueva contraseña',
+                inputPlaceholder: 'Confirmar contraseña',
+                showCancelButton: true,
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (v) => !v || v.trim() === '' ? 'Este campo es obligatorio' : undefined
+            });
+            if (confirmacion === undefined) return;
+
+            if (nueva.trim() !== confirmacion.trim()) {
+                Swal.fire('Error', 'Las contraseñas no coinciden. Intenta de nuevo.', 'error');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Guardando...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            await enviarAccionUsuarioASheets({ action: "actualizarClaveUsuario", usuario: usuarioActual.usuario, contrasena: nueva.trim(), solicitante: usuarioActual ? usuarioActual.usuario : "" });
+
+            // Refleja el cambio también en la sesión actual, ya que
+            // enviarAccionUsuarioASheets recarga usuariosCache desde Sheets.
+            const actualizado = usuariosCache.find(u => u.usuario.toLowerCase() === usuarioActual.usuario.toLowerCase());
+            if (actualizado) usuarioActual = actualizado;
+
+            Swal.fire('Listo', 'Tu contraseña se actualizó correctamente.', 'success');
+        }
+
+        async function cambiarClaveUsuario(index) {
+            const usuario = usuariosCache[index];
+            if (usuario.rol === 'LeadDeveloper' && !esLeadDeveloper(usuarioActual)) {
+                alert('⛔ Solo un Lead Developer puede cambiar la clave de otro Lead Developer.'); return;
+            }
+            const p = prompt(`Ingrese la nueva contraseña para "${usuario.usuario}":`);
+            if (p && p.trim() !== "") {
+                await enviarAccionUsuarioASheets({ action: "actualizarClaveUsuario", usuario: usuario.usuario, contrasena: p.trim(), solicitante: usuarioActual ? usuarioActual.usuario : "" });
+                alert("Contraseña actualizada con éxito.");
+            }
+        }
+
+        async function cambiarFAUsuario(index) {
+            const usuario = usuariosCache[index];
+            if (usuario.rol === 'LeadDeveloper' && !esLeadDeveloper(usuarioActual)) {
+                alert('⛔ Solo un Lead Developer puede modificar la cuenta de otro Lead Developer.'); return;
+            }
+            const nueva = prompt(`Ingrese la FA a asignar a "${usuario.usuario}" (ej: FA01). Déjelo vacío para "Sin asignar":`, usuario.sucursal || '');
+            if (nueva === null) return; // Canceló
+            const nuevaFA = nueva.trim().toUpperCase();
+            if (!rolSinFA(usuario.rol) && !nuevaFA) {
+                alert('⚠️ Los usuarios Admin y User necesitan una FA asignada.');
+                return;
+            }
+            await enviarAccionUsuarioASheets({ action: "actualizarSucursalUsuario", usuario: usuario.usuario, sucursal: nuevaFA, solicitante: usuarioActual ? usuarioActual.usuario : "" });
+            actualizarTablaReporte();
+        }
+
+        async function eliminarUsuario(index) {
+            const usuario = usuariosCache[index];
+            if (usuario.rol === 'LeadDeveloper' && !esLeadDeveloper(usuarioActual)) {
+                alert('⛔ Solo un Lead Developer puede eliminar la cuenta de otro Lead Developer.'); return;
+            }
+            if (usuarioActual && usuarioActual.usuario.toLowerCase() === usuario.usuario.toLowerCase()) {
+                alert("⚠️ No puedes eliminar tu propio usuario estando en sesión."); return;
+            }
+            if (confirm(`¿Eliminar al usuario "${usuario.usuario}"?`)) {
+                await enviarAccionUsuarioASheets({ action: "eliminarUsuario", usuario: usuario.usuario, solicitante: usuarioActual ? usuarioActual.usuario : "" });
+            }
+        }
+
+        async function cargarUsuariosDesdeSheets() {
+            if (!WEB_APP_URL || WEB_APP_URL.includes("TU_URL")) return usuariosCache;
+
+            try {
+                const respuesta = await fetch(WEB_APP_URL + "?tipo=usuarios&t=" + Date.now());
+                const usuarios = await respuesta.json();
+                if (Array.isArray(usuarios)) {
+                    usuariosCache = usuarios.map(u => {
+                        const rolNormalizado = String(u.rol || '').trim().toLowerCase();
+                        let rol = 'User';
+                        if (rolNormalizado === 'leaddeveloper' || rolNormalizado === 'lead developer' || rolNormalizado === 'lead dev') rol = 'LeadDeveloper';
+                        else if (rolNormalizado === 'superadmin' || rolNormalizado === 'super usuario' || rolNormalizado === 'super') rol = 'SuperAdmin';
+                        else if (rolNormalizado === 'admin') rol = 'Admin';
+                        return {
+                            usuario: String(u.usuario || '').trim(),
+                            contrasena: String(u.contrasena !== undefined && u.contrasena !== null ? u.contrasena : '').trim(),
+                            rol: rol,
+                            sucursal: String(u.sucursal || '').trim().toUpperCase()
+                        };
+                    });
+                }
+            } catch (error) {
+                console.error("No se pudo cargar la lista de usuarios desde Sheets:", error);
+            }
+            return usuariosCache;
+        }
+
+        async function enviarAccionUsuarioASheets(payload) {
+            if (!WEB_APP_URL || WEB_APP_URL.includes("TU_URL")) return;
+
+            try {
+                await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+            } catch (error) {
+                console.error("Error al sincronizar usuario con Sheets:", error);
+            }
+
+            await cargarUsuariosDesdeSheets();
+            actualizarTablaUsuarios();
+        }
+
+        function enviarEliminacionASheets(id) {
+            if (!WEB_APP_URL || WEB_APP_URL.includes("TU_URL")) return;
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ action: "eliminar", id: id, solicitante: usuarioActual ? usuarioActual.usuario : "" })
+            })
+            .then(() => {
+                console.log("Registro eliminado también en Google Sheets.");
+            })
+            .catch(error => {
+                console.error("Error al eliminar en Sheets:", error);
+            });
+        }
+
+        async function cargarDesdeSheets() {
+            if (!WEB_APP_URL || WEB_APP_URL.includes("TU_URL")) return;
+
+            try {
+                const respuesta = await fetch(WEB_APP_URL + "?t=" + Date.now());
+                const registrosSheet = await respuesta.json();
+
+                if (!Array.isArray(registrosSheet)) return;
+
+                registrosSheet.forEach(item => {
+                    item.cantidad = parseInt(item.cantidad) || 0;
+                    item.sucursal = String(item.sucursal || '');
+                    item.producto = String(item.producto || '');
+                    item.laboratorio = String(item.laboratorio || '');
+                    item.proveedor = String(item.proveedor || '');
+                    item.usuario = String(item.usuario || '');
+                    item.mes = String(item.mes || '');
+                    item.mesRegistro = String(item.mesRegistro || '');
+                    item.estadoRecuperacion = evaluarEstadoRecuperacion(item.proveedor, item.laboratorio);
+                });
+
+                const registrosVigentes = aplicarEliminacionesPendientes(registrosSheet);
+                const idsEnSheet = new Set(registrosVigentes.map(r => String(r.id)));
+                const pendientesLocales = globalVencidos.filter(item => !idsEnSheet.has(String(item.id)));
+
+                globalVencidos = [...registrosVigentes, ...pendientesLocales];
+                localStorage.setItem('vencidos', JSON.stringify(globalVencidos));
+                actualizarTablaReporte(true);
+            } catch (error) {
+                console.error("No se pudo sincronizar con Google Sheets:", error);
+            }
+        }
+
+        // Sincronización manual (botón "🔄 Sincronizar"): a diferencia de
+        // cargarDesdeSheets(), que fusiona con lo que haya pendiente localmente,
+        // esta función REEMPLAZA por completo la vista local con lo que hay
+        // realmente guardado en el Sheet, para que el usuario vea siempre el
+        // estado real y no registros "fantasma" que nunca llegaron a guardarse.
+        async function sincronizarManual() {
+            if (!WEB_APP_URL || WEB_APP_URL.includes("TU_URL")) {
+                alert("La URL del Web App de Google Sheets no está configurada.");
+                return;
+            }
+
+            Swal.fire({
+                title: 'Sincronizando...',
+                text: 'Actualizando la vista con los datos del Sheet.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const respuesta = await fetch(WEB_APP_URL + "?t=" + Date.now());
+                if (!respuesta.ok) {
+                    throw new Error("El servidor respondió con estado " + respuesta.status);
+                }
+
+                const registrosSheet = await respuesta.json();
+                if (!Array.isArray(registrosSheet)) {
+                    throw new Error("La respuesta del Sheet no tiene el formato esperado.");
+                }
+
+                registrosSheet.forEach(item => {
+                    item.cantidad = parseInt(item.cantidad) || 0;
+                    item.sucursal = String(item.sucursal || '');
+                    item.producto = String(item.producto || '');
+                    item.laboratorio = String(item.laboratorio || '');
+                    item.proveedor = String(item.proveedor || '');
+                    item.usuario = String(item.usuario || '');
+                    item.mes = String(item.mes || '');
+                    item.mesRegistro = String(item.mesRegistro || '');
+                    item.estadoRecuperacion = evaluarEstadoRecuperacion(item.proveedor, item.laboratorio);
+                });
+
+                // Reemplazo total: lo que esté en el Sheet es la única fuente de verdad.
+                globalVencidos = aplicarEliminacionesPendientes(registrosSheet);
+                localStorage.setItem('vencidos', JSON.stringify(globalVencidos));
+                actualizarTablaReporte(true);
+
+                Swal.fire('Sincronizado', `Se cargaron ${globalVencidos.length} registro(s) desde Google Sheets.`, 'success');
+            } catch (error) {
+                console.error("Error al sincronizar manualmente con Sheets:", error);
+                Swal.fire('Error al sincronizar', 'No se pudo traer la información del Sheet: ' + error.message, 'error');
+            }
+        }
+
+        function enviarASheets(payload) {
+            if (!WEB_APP_URL || WEB_APP_URL.includes("TU_URL")) return;
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                console.log("Datos sincronizados con Google Sheets correctamente.");
+            })
+            .catch(error => {
+                console.error("Error al sincronizar con Sheets:", error);
+            });
+        }
+    </script>
+</body>
+</html>
